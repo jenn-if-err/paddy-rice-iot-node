@@ -3,14 +3,13 @@ from predict import predict_moisture, predict_drying_time
 
 def get_sensor_data():
     """
-    Simulate sensor data acquisition.
-    In a production system, replace this with actual code to read data from the Arduino.
+    Acquire sensor data.
+    In a production system, replace this with code that reads data from the Arduino.
     
     Returns:
         list: [moisture_sensor_reading, temperature, humidity]
     """
     print("Acquiring sensor data...")
-    # For simulation, you can either input values or generate dummy data.
     try:
         moisture_sensor_value = float(input("Enter moisture sensor reading: "))
         temperature = float(input("Enter temperature: "))
@@ -30,23 +29,22 @@ def main():
     sensor_data = get_sensor_data()
     print("Sensor data acquired:", sensor_data)
     
-    # Step 2: Predict moisture content using the moisture model
-    # The moisture model expects all three values: [moisture_sensor_reading, temperature, humidity]
+    # Step 2: Predict moisture content using the moisture model saved as .h5.
+    # This function loads the model (using tf.keras.models.load_model) and the scaler.
     predicted_moisture = predict_moisture(sensor_data)
     print("Predicted Moisture Content:", predicted_moisture)
     
-    # Display the moisture content (e.g., on the web app)
-    # In production, this result might be sent to a database or API for the web interface.
+    # In a production setup, you might display the moisture content on the web app or update a database.
     
     # Step 3: Wait for the user to press "Predict" for drying time
     input("Press Enter to 'Predict' drying time...")
     
-    # For drying time, the model is trained on [temperature, humidity, predicted_moisture]
+    # For drying time prediction, the model uses [temperature, humidity, predicted_moisture]
     drying_sensor_data = sensor_data[1:]  # [temperature, humidity]
     predicted_drying_time = predict_drying_time(drying_sensor_data, predicted_moisture)
     print("Predicted Drying Time:", predicted_drying_time)
     
-    # In a full implementation, you could update a database or file here so that your web app can display the results.
+    # Optionally, update a database or file so that your web app can display the results.
     
 if __name__ == '__main__':
     main()
