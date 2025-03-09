@@ -19,7 +19,7 @@ def load_drying_time_model():
     return drying_model, drying_scaler
 
 
-def predict_drying_time(sensor_data, mc_initial, mc_final):
+def predict_drying_time(temperature, humidity, mc_initial, mc_final):
     """
     Predict drying time using the drying time model.
     """

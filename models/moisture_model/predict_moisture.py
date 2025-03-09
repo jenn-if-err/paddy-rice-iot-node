@@ -19,7 +19,7 @@ def load_moisture_model():
     return drying_model, drying_scaler
 
 
-def predict_moisture(sensor_data, mc_initial, mc_final):
+def predict_moisture(temperature, humidity, mc_initial, mc_final):
     """
     Predict drying time using the drying time model.
     """
@@ -29,7 +29,7 @@ def predict_moisture(sensor_data, mc_initial, mc_final):
     feature_names = ["mc_initial", "temperature", "humidity", "mc_final"]
 
     # Convert the input array into a DataFrame with proper column names
-    combined_features_df = pd.DataFrame([mc_initial] + sensor_data + [mc_final], 
+    combined_features_df = pd.DataFrame([mc_initial] + [sensor_data] + [mc_final], 
                                         index=feature_names).T  # Transpose to match (1, n_features)
 
     # Scale the features using the loaded scaler
