@@ -1,48 +1,45 @@
-from pathlib import Path
 import joblib
 import numpy as np
-import pandas as pd
+from pathlib import Path
 
-# Automatically find the base directory of the script
+# Automatically determine the base directory of the script
 BASE_DIR = Path(__file__).resolve().parent
 
-# Model paths relative to this script's location
+# Define model and scaler paths dynamically
 MODEL_PATH = BASE_DIR / "drying_time_rf_model.joblib"
 SCALER_PATH = BASE_DIR / "drying_time_rf_scaler.joblib"
 
-def load_drying_time_model():
-    """
-    Load the pre-trained drying time model and its scaler.
-    """
+try:
     drying_model = joblib.load(MODEL_PATH)
     drying_scaler = joblib.load(SCALER_PATH)
-    return drying_model, drying_scaler
+except Exception as e:
+    print(f"Error loading model: {e}")
+    drying_model = None
+    drying_scaler = None
 
-
-def predict_drying_time(temperature, humidity, mc_initial, mc_final):
+def predict_drying_time(initial_moisture, temperature, humidity, final_moisture):
     """
-    Predict drying time using the drying time model.
+    Predict drying time using the trained drying time model.
+
+    Parameters:
+        initial_moisture (float): Moisture content obtained from the moisture model.
+        temperature (float): Temperature reading from the DHT sensor.
+        humidity (float): Humidity reading from the DHT sensor.
+        final_moisture (float): Desired final moisture content.
+
+    Returns:
+        float: Predicted drying time.
     """
-    model, scaler = load_drying_time_model()
+    if drying_model is None or drying_scaler is None:
+        raise ValueError("Model or scaler not loaded properly.")
 
-    # Define the expected feature names (from when StandardScaler was trained)
-    feature_names = ["mc_initial", "temperature", "humidity", "mc_final"]
+    # Combine the features in the correct order
+    input_features = np.array([[initial_moisture, temperature, humidity, final_moisture]])
 
-    # Convert the input array into a DataFrame with proper column names
-    combined_features_df = pd.DataFrame([mc_initial] + sensor_data + [mc_final], 
-                                        index=feature_names).T  # Transpose to match (1, n_features)
+    # Scale the input features
+    input_scaled = drying_scaler.transform(input_features)
 
-    # Scale the features using the loaded scaler
-    combined_features_scaled = scaler.transform(combined_features_df)
-
-    # Make the prediction
-    predicted_time = model.predict(combined_features_scaled)
+    # Predict drying time
+    predicted_time = drying_model.predict(input_scaled)
+    
     return predicted_time[0]
-
-
-if __name__ == "__main__":
-    sample_sensor_data = [30, 70]  
-    sample_moisture = 18.5  
-    sample_mc_final = 12.5  
-    drying_time = predict_drying_time(sample_sensor_data, sample_moisture, sample_mc_final)
-    print("Predicted Drying Time:", drying_time)

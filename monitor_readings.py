@@ -39,12 +39,14 @@ def show_drying_time():
     Returns:
         float: Predicted drying time.
     """
+    temperature = show_temperature()
+    humidity = show_humidity()
+    initial_moisture = show_initial_moisture()
+    final_moisture = receive_final_moisture()
     
-    
-    # Predict drying time
-    drying_time = predict_drying_time(show_temperature, show_humidity, show_initial_moisture, receive_final_moisture)
+    drying_time = predict_drying_time(initial_moisture, temperature, humidity, final_moisture)
     return drying_time
 
 if __name__ == "__main__":
-    drying_time = predict_drying_time()
+    drying_time = show_drying_time()
     print("Predicted Drying Time:", drying_time)
