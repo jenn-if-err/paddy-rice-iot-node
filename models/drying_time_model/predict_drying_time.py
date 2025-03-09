@@ -1,13 +1,16 @@
 import joblib
 import numpy as np
+import os
+
+os.chdir('C:\\Users\\User\\paddy\\paddy_rice_monitoring_system\\models\\drying_time_model')
 
 def load_drying_time_model():
     """
     Load the pre-trained drying time model and its scaler.
     Adjust the file paths as necessary.
     """
-    drying_model = joblib.load('models/drying_time_model/drying_time_rf_model.joblib')
-    drying_scaler = joblib.load('models/drying_time_model/drying_time_rf_scaler.joblib')
+    drying_model = joblib.load('drying_time_rf_model.joblib')
+    drying_scaler = joblib.load('drying_time_rf_scaler.joblib')
     return drying_model, drying_scaler
 
 def predict_drying_time(sensor_data, sample_moisture, mc_final):
