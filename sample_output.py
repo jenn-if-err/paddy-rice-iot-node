@@ -2,6 +2,14 @@ import sys
 from models.drying_time_model.predict_drying_time import predict_drying_time
 from models.moisture_model.predict_moisture import predict_moisture
 
+def predict_sample_moisture():
+    """
+    Predict moisture content using predefined sample sensor readings.
+    
+    Returns:
+        float: Predicted moisture content.
+    """
+    
 
 def predict_sample_drying_time():
     """
