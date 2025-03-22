@@ -1,0 +1,58 @@
+body {
+  background-color: #f9f9f9;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
+
+.sidebar {
+  background-color: white;
+  height: 100vh;
+  border-right: 1px solid #eee;
+}
+
+.sidebar .nav-link {
+  color: #4d654b; /* Muted green font color */
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s, color 0.2s;
+  font-weight: 500;
+}
+
+.sidebar .nav-link i {
+  color: #4d654b !important; /* Icon muted green */
+}
+
+.sidebar .nav-link:hover {
+  background-color: #f1f6f1;
+  color: #1a9b3f;
+}
+
+.sidebar .nav-link.active {
+  background-color: #e9f5eb;
+  color: #1a9b3f;
+  font-weight: 600;
+}
+
+.sidebar .nav-link.active i {
+  color: #1a9b3f !important;
+}
+
+
+.card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
+}
+
+.green-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #1a9b3f;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.sidebar {
+  padding: 20px 16px;  /* or reduce further if needed */
+}
