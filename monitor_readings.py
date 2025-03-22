@@ -40,6 +40,29 @@ def receive_final_moisture():
 
     return final_moisture 
 
+def receive_initial_weight():
+
+    initial_weight= 12.5
+
+    return initial_weight
+
+def show_yield():
+    """
+    Calculates and displays the yield (final weight) after drying based on
+    initial weight and moisture contents.
+
+    Returns:
+    final weight
+    """
+    initial_moisture = show_initial_moisture()        # e.g., 18 (%)
+    final_moisture = receive_final_moisture()          # e.g., 14 (%)
+    initial_weight = receive_initial_weight()          # e.g., 30 (kg)
+
+    # Apply the yield formula
+    final_weight = initial_weight * (100 - final_moisture) / (100 - initial_moisture)
+
+    return final_weight
+
 
 def show_drying_time():
     """
