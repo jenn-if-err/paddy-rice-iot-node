@@ -2,6 +2,11 @@ import sys
 from models.drying_time_model.predict_drying_time import predict_drying_time
 from models.moisture_model.predict_moisture import predict_moisture
 
+def show_capacitive():
+
+    capacitive=30
+
+    return capacitive
 
 def show_temperature():
 
@@ -22,8 +27,11 @@ def show_initial_moisture():
     Returns:
         float: Predicted moisture content.
     """
-
-    initial_moisture = 18.5  
+    capacitive=show_capacitive()
+    temperature = show_temperature()
+    humidity = show_humidity()
+    initial_moisture = predict_moisture(capacitive, temperature, humidity)
+    #initial_moisture = 18.5  
     return initial_moisture
     
 def receive_final_moisture():
@@ -31,6 +39,7 @@ def receive_final_moisture():
     final_moisture= 12.5
 
     return final_moisture 
+
 
 def show_drying_time():
     """

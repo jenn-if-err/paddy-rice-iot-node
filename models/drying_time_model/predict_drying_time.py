@@ -1,45 +1,38 @@
+from pathlib import Path
 import joblib
 import numpy as np
-from pathlib import Path
+import pandas as pd
 
-# Automatically determine the base directory of the script
+# Automatically find the base directory of the script
 BASE_DIR = Path(__file__).resolve().parent
 
-# Define model and scaler paths dynamically
-MODEL_PATH = BASE_DIR / "drying_time_rf_model.joblib"
-SCALER_PATH = BASE_DIR / "drying_time_rf_scaler.joblib"
+# Model paths relative to this script's location
+MODEL_PATH = BASE_DIR / "drying_time_model.joblib"
+SCALER_PATH = BASE_DIR / "drying_time_scaler.joblib"
 
-try:
+def load_drying_time_model():
     drying_model = joblib.load(MODEL_PATH)
     drying_scaler = joblib.load(SCALER_PATH)
-except Exception as e:
-    print(f"Error loading model: {e}")
-    drying_model = None
-    drying_scaler = None
+    return drying_model, drying_scaler
+
 
 def predict_drying_time(initial_moisture, temperature, humidity, final_moisture):
-    """
-    Predict drying time using the trained drying time model.
-
-    Parameters:
-        initial_moisture (float): Moisture content obtained from the moisture model.
-        temperature (float): Temperature reading from the DHT sensor.
-        humidity (float): Humidity reading from the DHT sensor.
-        final_moisture (float): Desired final moisture content.
-
-    Returns:
-        float: Predicted drying time.
-    """
-    if drying_model is None or drying_scaler is None:
-        raise ValueError("Model or scaler not loaded properly.")
-
-    # Combine the features in the correct order
-    input_features = np.array([[initial_moisture, temperature, humidity, final_moisture]])
-
-    # Scale the input features
-    input_scaled = drying_scaler.transform(input_features)
-
-    # Predict drying time
-    predicted_time = drying_model.predict(input_scaled)
+    model, scaler = load_drying_time_model()
+    combined_features = np.array([
+        float(initial_moisture),
+        float(temperature),
+        float(humidity),
+        float(final_moisture)
+    ]).reshape(1, -1)
     
-    return predicted_time[0]
+    # Scale the features
+    combined_features_scaled = scaler.transform(combined_features)
+    
+    # Predict
+    predicted_time = model.predict(combined_features_scaled)[0]
+    
+    # Convert to hours and minutes
+    hours = int(predicted_time)
+    minutes = int(round((predicted_time - hours) * 60))
+    
+    return hours, minutes
