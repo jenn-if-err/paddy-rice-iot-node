@@ -6,44 +6,41 @@
 #define DHTTYPE DHT22
 #define SOIL_PIN A0
 
-// Initialize DHT sensor
 DHT dht(DHTPIN, DHTTYPE);
-int sen_max = 570;
-int sen_min = 246;
+
+// Calibration
+const int sen_max = 570;
+const int sen_min = 246;
 
 void setup() {
-  // Start serial communication
-  Serial.begin(115200);
-
-  // Start DHT sensor
+  Serial.begin(115200); 
   dht.begin();
-}  // <-- This closing brace was missing
+}
 
 void loop() {
-  // Read soil moisture
-  int soilMoistureValue = analogRead(SOIL_PIN);
-  double soilMoisturePercent = map(soilMoistureValue, sen_max, sen_min, 0.0, 100.0);
-  if (soilMoisturePercent < 0) soilMoisturePercent = 0;
+  if (Serial.available() > 0) {
+    String command = Serial.readStringUntil('\n');
+    command.trim();  // Remove trailing newline
 
-  // Read temperature and humidity
-  double humidity = dht.readHumidity();
-  double temperature = dht.readTemperature();
+    if (command == "read") {
+      int soilMoistureValue = analogRead(SOIL_PIN);
+      float soilMoisturePercent = map(soilMoistureValue, sen_max, sen_min, 0.0, 100.0);
+      soilMoisturePercent = constrain(soilMoisturePercent, 0.0, 100.0);
 
-  // Check if any reads failed and exit early
-  if (isnan(humidity) || isnan(temperature)) {
-    Serial.println(F("Failed to read from DHT sensor!"));
-    temperature = 0.0;
-    humidity = 0.0;
-  }
+      float humidity = dht.readHumidity();
+      float temperature = dht.readTemperature();
 
-     Serial.print(soilMoisturePercent, 1);
+      if (isnan(humidity)) humidity = 0.0;
+      if (isnan(temperature)) temperature = 0.0;
+
+      // Output data in one line: moisture,temperature,humidity
+      Serial.print(soilMoisturePercent, 1);
       Serial.print(",");
       Serial.print(temperature, 1);
       Serial.print(",");
       Serial.println(humidity, 1);
 
-      Serial.flush();  // Ensure it's all sent
-
-  // Delay before next reading
-  delay(10000);
+      Serial.flush();  // Ensure data is sent
+    }
+  }
 }
