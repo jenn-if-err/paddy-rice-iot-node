@@ -12,9 +12,9 @@ def login():
         email = request.form.get ('email')
         password = request.form.get('password')
 
-        user=User.query.filter_by(email=email).first() #filter users that has email like this
+        user=User.query.filter_by(email=email).first() #filter users 
         if user:
-            #check if the passowrd that they typed in is equal to the hash stored in the server
+            #check password
             if check_password_hash(user.password, password):
                 flash('Logged in succesfully!', category ='success')
                 login_user(user, remember=True)
@@ -26,7 +26,7 @@ def login():
     return render_template("login.html", user=current_user)
 
 @auth.route('/logout')
-@login_required #make sure that we can't access the preceeding page if the user is not logged in
+@login_required 
 def logout():
     logout_user()
     return redirect(url_for('auth.login'))
@@ -39,7 +39,7 @@ def sign_up():
         password1=request.form.get('password1')
         password2=request.form.get('password2')
 
-        user=User.query.filter_by(email=email).first() #filter users that has email like this
+        user=User.query.filter_by(email=email).first() 
         if user:
             flash('Email already exists.', category='error')
         elif len(email)<4:

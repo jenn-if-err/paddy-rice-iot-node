@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from os import path
 from flask_login import LoginManager
 
-# Initialize the SQLAlchemy object
+# initialize SQLAlchemy object
 db = SQLAlchemy()
 DB_NAME = "database.db"
 
@@ -14,20 +14,20 @@ def create_app():
     app.config['SECRET_KEY'] = 'jkjkjkjk jtjtjtjt'
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
 
-    # Initialize database
+    # initialize database
     db.init_app(app)
 
-    # Register Blueprints
+    # register blueprints
     from .views import views
     from .auth import auth
     app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(auth, url_prefix='/')
 
-    # Import models before creating database
+    #import models
     from .models import User, DryingRecord
     create_database(app)
 
-    # Set up Flask-Login
+    # set up Flask-Login
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
     login_manager.init_app(app)
@@ -43,4 +43,4 @@ def create_database(app):
     if not path.exists(db_path):
         with app.app_context():
             db.create_all()
-        print("✅ Created new SQLite database at:", db_path)
+        print("Created new SQLite database at:", db_path)

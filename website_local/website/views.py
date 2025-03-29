@@ -9,7 +9,7 @@ import serial, traceback, time
 
 views = Blueprint('views', __name__)
 
-# Function to read sensor data from Arduino over serial
+# read sensor data from Arduino over serial connection
 def read_arduino_serial():
     try:
         with serial.Serial('COM4', 115200, timeout=2) as ser:
@@ -23,7 +23,7 @@ def read_arduino_serial():
             line = ser.readline().decode().strip()
             print("Arduino says:", line)
 
-            # Validate format
+            # validate format
             parts = line.split(",")
             if len(parts) == 3:
                 sensor_value = float(parts[0])
@@ -50,7 +50,7 @@ def home():
             date_harvested = request.form.get('date_harvested')
            
 
-            # Parse dates safely
+            # parse dates
             date_planted = datetime.strptime(date_planted, "%Y-%m-%d").date() if date_planted else None
             date_harvested = datetime.strptime(date_harvested, "%Y-%m-%d").date() if date_harvested else None
             date_dried = datetime.today().date()
@@ -84,7 +84,7 @@ def home():
 @login_required
 def calculate():
     try:
-        # Gather all values from form
+        # gather values
         initial_weight = float(request.form.get('initial_weight'))
         temperature = float(request.form.get('temperature'))
         humidity = float(request.form.get('humidity'))
@@ -92,23 +92,22 @@ def calculate():
         moisture_content = float(request.form.get('moisture_content'))
         final_moisture = float(request.form.get('final_moisture'))
 
-        # Optional dates
+        # dates
         date_planted = request.form.get('date_planted')
         date_harvested = request.form.get('date_harvested')
-        date_dried = request.form.get('date_dried')
 
         date_planted = datetime.strptime(date_planted, "%Y-%m-%d").date() if date_planted else None
         date_harvested = datetime.strptime(date_harvested, "%Y-%m-%d").date() if date_harvested else None
         date_dried = datetime.strptime(date_dried, "%Y-%m-%d").date() if date_dried else None
 
-        # Predict drying time
+        # predict drying time
         hours, minutes = predict_drying_time(moisture_content, temperature, humidity, final_moisture)
         drying_time = f"{hours}:{minutes:02d}"
 
-        # Calculate final weight
+        # calculate final weight
         final_weight = round(initial_weight * ((1 - moisture_content / 100) / (1 - final_moisture / 100)), 2)
 
-        # Save to database
+        # save to database
         new_record = DryingRecord(
             initial_weight=initial_weight,
             temperature=temperature,
