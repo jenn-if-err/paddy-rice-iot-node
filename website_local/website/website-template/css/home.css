@@ -1,0 +1,55 @@
+/* Fixed container size for demonstration */
+.fixed-container {
+    width: 1024px;
+    height: 600px;
+    margin: 0 auto;
+    border: 1px solid #ccc; /* Optional border for visualization */
+    overflow: hidden;       /* Hide scrollbars if content overflows */
+  }
+  
+  .brand-logo {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #5f9422; /* Example brand color */
+  }
+  
+  .profile-name {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  /* Left sidebar styling */
+  .dates-sidebar {
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+  }
+  
+  /* Remove numeric input spin buttons in Chrome, Safari, Edge */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  
+  /* Remove numeric input spin buttons in Firefox */
+  /* input[type=number] {
+    -moz-appearance: textfield;
+  } */
+  
+  .weight-panel {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+  
+  .weight-panel h4 {
+    margin-bottom: 1rem;
+  }
+  
+  .weight-input {
+    width: 100px;
+    text-align: center;
+    margin: 0 auto;
+  }
+  

@@ -1,0 +1,77 @@
+/* Container: full width on small screens, max-width 1024px on larger screens */
+.fixed-container {
+    max-width: 1024px;
+    margin: 0 auto;
+    border: 1px solid #ccc;
+    /* On larger screens, fix height; otherwise let content adjust */
+    height: auto;
+  }
+  
+  /* On screens 1024px and wider, force fixed height */
+  @media (min-width: 1024px) {
+    .fixed-container {
+      height: 600px;
+    }
+  }
+  
+  /* Header styling */
+  /* .header {
+    /* You can adjust header height or padding as needed */
+  /* } */ 
+  .brand-logo {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #5f9422;
+  }
+  .profile-name {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  /* Info Boxes */
+  .info-box {
+    height: 200px; /* Adjust as needed */
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+  }
+  
+  .box-moisture {
+    background-color: #1b4965; /* teal-like */
+  }
+  .box-temperature {
+    background-color: #5fa777; /* green-like */
+  }
+  .box-humidity {
+    background-color: #f4a261; /* orange-like */
+  }
+  
+  /* Box Titles and Display Values */
+  .box-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+  .display-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  /* Footer: place the Read button closer to the boxes */
+  .footer {
+    margin-top: 1rem;
+  }
+  
+  /* Read Button Styling */
+  .box-read {
+    background-color: #1b4965;
+    border-color: #1b4965;
+  }
+  .box-read:hover {
+    background-color: #163a51;
+    border-color: #163a51;
+  }
+  

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Paddy Rice Tracker</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Link to external CSS -->
+  <link href="/css/home.css" rel="stylesheet">
+</head>
+<body>
+  <div class="fixed-container d-flex flex-column">
+    <!-- Header -->
+    <header class="d-flex justify-content-between align-items-center p-3">
+      <div class="brand-logo">
+        <img src="https://via.placeholder.com/40x40" alt="Logo" class="me-2" />
+        Paddy Rice
+      </div>
+      <div class="profile-name">
+        <span>Name</span> | <a href="#">Profile</a>
+      </div>
+    </header>
+
+    <div class="flex-grow-1 d-flex">
+      <!-- Left sidebar (Dates) -->
+      <div class="dates-sidebar col-3 p-3">
+        <div class="mb-3">
+          <label for="datePlanted" class="form-label">Date Planted</label>
+          <input type="date" class="form-control" id="datePlanted" value="2024-06-15">
+        </div>
+        <div class="mb-3">
+          <label for="dateHarvested" class="form-label">Date Harvested</label>
+          <input type="date" class="form-control" id="dateHarvested" value="2024-10-15">
+        </div>
+        <div class="mb-3">
+          <label for="dateDried" class="form-label">Date Dried</label>
+          <input type="date" class="form-control" id="dateDried" value="2024-10-15">
+        </div>
+      </div>
+
+      <!-- Main content area -->
+      <div class="col-9 p-3">
+        <div class="weight-panel">
+          <h4>Initial Weight</h4>
+          <input type="number" class="form-control weight-input" value="0" />
+          <div class="mt-3">
+            <button class="btn btn-success">Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS (Optional for interactive components) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

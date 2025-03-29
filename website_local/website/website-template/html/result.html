@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Paddy Rice Tracker</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons (for optional arrow icons) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <!-- External CSS -->
+  <link href="/css/result.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="fixed-container d-flex flex-column">
+  <!-- Top Bar -->
+  <header class="d-flex justify-content-between align-items-center p-3">
+    <button class="btn btn-light back-button">
+      <i class="bi bi-arrow-left"></i> Back
+    </button>
+    <img src="https://via.placeholder.com/120x60" alt="Paddy Rice Logo" class="paddy-logo">
+  </header>
+
+  <!-- Main Content -->
+  <main class="container-fluid flex-grow-1">
+    <!-- Weight Section -->
+    <section class="mb-3">
+      <h5 class="section-title">Weight</h5>
+      <div class="ms-3 mb-2 text-muted">Initial Weight</div>
+      <div class="weight-box ms-3">500 kg</div>
+    </section>
+    <hr />
+
+    <!-- Readings Section -->
+    <section class="mb-3">
+      <h5 class="section-title">Readings</h5>
+      <div class="row g-3 mt-2 ms-1">
+        <!-- Initial Moisture Content -->
+        <div class="col-6 col-sm-3">
+          <div class="reading-box text-center">
+            <div class="reading-value">28%</div>
+            <small class="text-muted">Initial Moisture Content</small>
+          </div>
+        </div>
+        <!-- Final Moisture Content -->
+        <div class="col-6 col-sm-3">
+          <div class="reading-box text-center">
+            <div class="reading-value">14%</div>
+            <small class="text-muted">Final Moisture Content</small>
+          </div>
+        </div>
+        <!-- Humidity -->
+        <div class="col-6 col-sm-3">
+          <div class="reading-box text-center">
+            <div class="reading-value">28%</div>
+            <small class="text-muted">Humidity</small>
+          </div>
+        </div>
+        <!-- Temperature -->
+        <div class="col-6 col-sm-3">
+          <div class="reading-box text-center">
+            <div class="reading-value">32°C</div>
+            <small class="text-muted">Temperature</small>
+          </div>
+        </div>
+      </div>
+    </section>
+    <hr />
+
+    <!-- Estimation Section -->
+    <section class="mb-5">
+      <h5 class="section-title">Estimation</h5>
+      <div class="row g-3 mt-2 ms-1">
+        <!-- Yield -->
+        <div class="col-6 col-sm-4">
+          <div class="estimation-box text-center">
+            <div class="estimation-value">445 kg</div>
+            <small class="text-muted">Yield</small>
+          </div>
+        </div>
+        <!-- Drying Time -->
+        <div class="col-6 col-sm-4">
+          <div class="estimation-box text-center">
+            <div class="estimation-value">8:30</div>
+            <small class="text-muted">Drying time</small>
+          </div>
+        </div>
+        <!-- Shelf Life -->
+        <div class="col-6 col-sm-4">
+          <div class="estimation-box text-center">
+            <div class="estimation-value">2-3 weeks</div>
+            <small class="text-muted">Shelf life</small>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer with Save Button -->
+  <footer class="p-3 d-flex justify-content-end">
+    <button class="btn btn-success save-button">Save</button>
+  </footer>
+</div>
+
+<!-- Bootstrap JS (Optional for interactive components) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
