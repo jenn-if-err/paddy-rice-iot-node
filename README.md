@@ -1,1 +1,1 @@
-# drying_system
+# paddy rice monitoring system
