@@ -5,19 +5,17 @@ from mlmodels.moisture_model.predict_moisture import predict_moisture
 from .models import DryingRecord
 from . import db
 from datetime import datetime
-import serial
-import serial.tools.list_ports
-import traceback
-import platform
-import time
+import serial, traceback, time
+
 views = Blueprint('views', __name__)
 
+# Function to read sensor data from Arduino over serial
 def read_arduino_serial():
     try:
         with serial.Serial('COM4', 115200, timeout=2) as ser:
-            time.sleep(2)  # allow Arduino to reset
+            time.sleep(2) 
 
-            ser.reset_input_buffer()  # flush any old data
+            ser.reset_input_buffer() 
             ser.write(b'read\n')
 
             print("Sent 'read' to Arduino. Waiting for response...")
@@ -40,6 +38,7 @@ def read_arduino_serial():
     return None, None, None
 
 
+
 @views.route('/', methods=['GET', 'POST'])
 @login_required
 def home():
@@ -49,12 +48,12 @@ def home():
             final_moisture = float(request.form.get('final_moisture'))
             date_planted = request.form.get('date_planted')
             date_harvested = request.form.get('date_harvested')
-            date_dried = request.form.get('date_dried')
+           
 
             # Parse dates safely
             date_planted = datetime.strptime(date_planted, "%Y-%m-%d").date() if date_planted else None
             date_harvested = datetime.strptime(date_harvested, "%Y-%m-%d").date() if date_harvested else None
-            date_dried = datetime.strptime(date_dried, "%Y-%m-%d").date() if date_dried else None
+            date_dried = datetime.today().date()
 
             sensor_value, temperature, humidity = read_arduino_serial()
             if None in (sensor_value, temperature, humidity):
