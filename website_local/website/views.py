@@ -6,23 +6,26 @@ from .models import DryingRecord
 from . import db
 from datetime import datetime
 import serial
+import serial.tools.list_ports
 import traceback
-
+import platform
+import time
 views = Blueprint('views', __name__)
 
-# Function to read sensor data from Arduino over serial
-import serial
-
-# Function to read sensor data from Arduino over serial
 def read_arduino_serial():
     try:
-        with serial.Serial('/dev/ttyUSB0', 115200, timeout=2) as ser:
-            ser.reset_input_buffer()  # optional: clear any leftover data
-            ser.write(b'read\n')      # Send the read command
+        with serial.Serial('COM4', 115200, timeout=2) as ser:
+            time.sleep(2)  # allow Arduino to reset
 
-            line = ser.readline().decode('utf-8').strip()
+            ser.reset_input_buffer()  # flush any old data
+            ser.write(b'read\n')
+
+            print("Sent 'read' to Arduino. Waiting for response...")
+
+            line = ser.readline().decode().strip()
             print("Arduino says:", line)
 
+            # Validate format
             parts = line.split(",")
             if len(parts) == 3:
                 sensor_value = float(parts[0])
@@ -31,16 +34,10 @@ def read_arduino_serial():
                 return sensor_value, temperature, humidity
             else:
                 print("Invalid response format from Arduino.")
-
-    except serial.SerialException as e:
-        print("Serial connection error:", e)
-    except ValueError as e:
-        print("Error parsing sensor data:", e)
     except Exception as e:
-        print("Unexpected error reading from Arduino:", e)
+        print("Error reading from Arduino:", e)
 
     return None, None, None
-
 
 
 @views.route('/', methods=['GET', 'POST'])
