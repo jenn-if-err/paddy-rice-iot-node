@@ -18,35 +18,35 @@
       <table class="table table-bordered align-middle text-center">
         <thead style="background-color: #355B25; color: white;">
           <tr>
-            <th>Date Dried</th>
             <th>Batch Name</th>
-            <th>Initial Weight (kg)</th>
-            <th>Temperature (°C)</th>
-            <th>Humidity (%)</th>
-            <th>Initial MC (%)</th>
-            <th>Final MC (%)</th>
-            <th>Drying Time</th>
-            <th>Final Weight (kg)</th>
-            <th>Shelf Life</th>
+            <th>Due Date</th>
             <th>Date Planted</th>
             <th>Date Harvested</th>
+            <th>Date Dried</th>
+            <th>Initial Weight</th>
+            <th>Final Weight</th>
+            <th>Initial MC</th>
+            <th>Final MC</th>
+            <th>Temperature</th>
+            <th>Humidity</th>
+            <th>Drying Time</th>
           </tr>
         </thead>
         <tbody>
           {% for r in records %}
           <tr>
-            <td>{{ r.date_dried.strftime('%Y-%m-%d') if r.date_dried else '—' }}</td>
             <td>{{ r.batch_name }}</td>
-            <td>{{ r.initial_weight }}</td>
-            <td>{{ r.temperature }}</td>
-            <td>{{ r.humidity }}</td>
-            <td>{{ r.initial_moisture }}</td>
-            <td>{{ r.final_moisture }}</td>
-            <td>{{ r.drying_time }}</td>
-            <td>{{ r.final_weight }}</td>
             <td>{{ r.shelf_life }}</td>
             <td>{{ r.date_planted.strftime('%Y-%m-%d') if r.date_planted else '—' }}</td>
             <td>{{ r.date_harvested.strftime('%Y-%m-%d') if r.date_harvested else '—' }}</td>
+            <td>{{ r.date_dried.strftime('%Y-%m-%d') if r.date_dried else '—' }}</td>
+            <td>{{ r.initial_weight }} kg</td>
+            <td>{{ r.final_weight }} kg</td>
+            <td>{{ r.initial_moisture }}%</td>
+            <td>{{ r.final_moisture }}%</td>
+            <td>{{ r.temperature }}°C</td>
+            <td>{{ r.humidity }}%</td>
+            <td>{{ r.drying_time }}</td>
           </tr>
           {% endfor %}
         </tbody>

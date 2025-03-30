@@ -14,7 +14,7 @@ views = Blueprint('views', __name__)
 
 def read_arduino_serial():
     try:
-        # Detect OS and choose port
+        # detect OS and choose port
         if platform.system() == 'Windows':
             port = 'COM4'
         else:
