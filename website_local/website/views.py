@@ -4,40 +4,28 @@ from mlmodels.drying_time_model.predict_drying_time import predict_drying_time
 from mlmodels.moisture_model.predict_moisture import predict_moisture
 from .models import DryingRecord
 from . import db
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import serial, traceback, time
+from dateutil.relativedelta import relativedelta
+
 
 views = Blueprint('views', __name__)
 
-# read sensor data from Arduino over serial connection
 def read_arduino_serial():
     try:
         with serial.Serial('COM4', 115200, timeout=2) as ser:
-            time.sleep(2) 
-
-            ser.reset_input_buffer() 
+            time.sleep(2)
+            ser.reset_input_buffer()
             ser.write(b'read\n')
-
             print("Sent 'read' to Arduino. Waiting for response...")
-
             line = ser.readline().decode().strip()
             print("Arduino says:", line)
-
-            # validate format
             parts = line.split(",")
             if len(parts) == 3:
-                sensor_value = float(parts[0])
-                temperature = float(parts[1])
-                humidity = float(parts[2])
-                return sensor_value, temperature, humidity
-            else:
-                print("Invalid response format from Arduino.")
+                return float(parts[0]), float(parts[1]), float(parts[2])
     except Exception as e:
         print("Error reading from Arduino:", e)
-
     return None, None, None
-
-
 
 @views.route('/', methods=['GET', 'POST'])
 @login_required
@@ -46,14 +34,10 @@ def home():
         try:
             initial_weight = float(request.form.get('initial_weight'))
             final_moisture = float(request.form.get('final_moisture'))
-            date_planted = request.form.get('date_planted')
-            date_harvested = request.form.get('date_harvested')
-           
-
-            # parse dates
-            date_planted = datetime.strptime(date_planted, "%Y-%m-%d").date() if date_planted else None
-            date_harvested = datetime.strptime(date_harvested, "%Y-%m-%d").date() if date_harvested else None
-            date_dried = datetime.today().date()
+            date_planted = datetime.strptime(request.form.get('date_planted'), "%Y-%m-%d").date()
+            date_harvested = datetime.strptime(request.form.get('date_harvested'), "%Y-%m-%d").date()
+            batch_name = request.form.get('batch_name')
+            date_dried = date.today()
 
             sensor_value, temperature, humidity = read_arduino_serial()
             if None in (sensor_value, temperature, humidity):
@@ -62,8 +46,8 @@ def home():
 
             moisture_content = round(predict_moisture(sensor_value, temperature, humidity), 2)
 
-            return render_template("readings.html",
-                                   user=current_user,
+            return render_template("readings.html", user=current_user,
+                                   batch_name=batch_name,
                                    initial_weight=initial_weight,
                                    final_moisture=final_moisture,
                                    sensor_value=sensor_value,
@@ -79,62 +63,94 @@ def home():
 
     return render_template("home.html", user=current_user)
 
-
 @views.route('/calculate', methods=['POST'])
 @login_required
 def calculate():
     try:
-        # gather values
-        initial_weight = float(request.form.get('initial_weight'))
-        temperature = float(request.form.get('temperature'))
-        humidity = float(request.form.get('humidity'))
-        sensor_value = float(request.form.get('sensor_value'))
-        moisture_content = float(request.form.get('moisture_content'))
-        final_moisture = float(request.form.get('final_moisture'))
+        data = request.form
+        initial_weight = float(data.get('initial_weight'))
+        temperature = float(data.get('temperature'))
+        humidity = float(data.get('humidity'))
+        sensor_value = float(data.get('sensor_value'))
+        moisture_content = float(data.get('moisture_content'))
+        final_moisture = float(data.get('final_moisture'))
+        batch_name = data.get('batch_name')
 
-        # dates
         date_planted = request.form.get('date_planted')
         date_harvested = request.form.get('date_harvested')
 
-        date_planted = datetime.strptime(date_planted, "%Y-%m-%d").date() if date_planted else None
-        date_harvested = datetime.strptime(date_harvested, "%Y-%m-%d").date() if date_harvested else None
-        date_dried = datetime.strptime(date_dried, "%Y-%m-%d").date() if date_dried else None
+        if not date_planted or not date_harvested:
+            flash("Missing date values. Please make sure all fields are filled.", category="error")
+            return redirect(url_for('views.home'))
 
-        # predict drying time
+        date_planted = datetime.strptime(date_planted, "%Y-%m-%d").date()
+        date_harvested = datetime.strptime(date_harvested, "%Y-%m-%d").date()
+
+
         hours, minutes = predict_drying_time(moisture_content, temperature, humidity, final_moisture)
         drying_time = f"{hours}:{minutes:02d}"
 
-        # calculate final weight
         final_weight = round(initial_weight * ((1 - moisture_content / 100) / (1 - final_moisture / 100)), 2)
 
-        # save to database
-        new_record = DryingRecord(
-            initial_weight=initial_weight,
-            temperature=temperature,
-            humidity=humidity,
-            sensor_value=sensor_value,
-            initial_moisture=moisture_content,
-            final_moisture=final_moisture,
-            drying_time=drying_time,
-            final_weight=final_weight,
-            date_planted=date_planted,
-            date_harvested=date_harvested,
-            date_dried=date_dried,
-            user_id=current_user.id
-        )
-        db.session.add(new_record)
-        db.session.commit()
+        date_dried = date.today()
+        # Compute shelf life as future date
+        if final_moisture == 14:
+            shelf_life = date_dried + timedelta(weeks=3)
+        elif final_moisture == 12:
+            shelf_life = date_dried + relativedelta(months=12)
+        else:
+            shelf_life = date_dried + relativedelta(years=1, months=3)
 
-        return render_template("prediction.html",
-                               user=current_user,
+        return render_template("prediction.html", user=current_user,
+                               batch_name=batch_name,
+                               initial_weight=initial_weight,
+                               temperature=temperature,
+                               humidity=humidity,
+                               sensor_value=sensor_value,
+                               moisture_content=moisture_content,
+                               final_moisture=final_moisture,
                                drying_time=drying_time,
-                               final_weight=final_weight)
+                               final_weight=final_weight,
+                               shelf_life=shelf_life,
+                               date_planted=date_planted,
+                               date_harvested=date_harvested,
+                               date_dried=date_dried)
 
     except Exception as e:
         traceback.print_exc()
         flash(f"Calculation error: {e}", category="error")
         return redirect(url_for('views.home'))
 
+@views.route('/save', methods=['POST'])
+@login_required
+def save_prediction():
+    try:
+        data = request.form
+        new_record = DryingRecord(
+            batch_name=data.get('batch_name'),
+            initial_weight=float(data.get('initial_weight')),
+            temperature=float(data.get('temperature')),
+            humidity=float(data.get('humidity')),
+            sensor_value=float(data.get('sensor_value')),
+            initial_moisture=float(data.get('moisture_content')),
+            final_moisture=float(data.get('final_moisture')),
+            drying_time=data.get('drying_time'),
+            final_weight=float(data.get('final_weight')),
+            shelf_life=data.get('shelf_life'),
+            date_planted=datetime.strptime(data.get('date_planted'), "%Y-%m-%d").date(),
+            date_harvested=datetime.strptime(data.get('date_harvested'), "%Y-%m-%d").date(),
+            date_dried=datetime.strptime(data.get('date_dried'), "%Y-%m-%d").date(),
+            user_id=current_user.id
+        )
+        db.session.add(new_record)
+        db.session.commit()
+        flash("Prediction saved successfully!", category="success")
+        return redirect(url_for('views.records'))
+
+    except Exception as e:
+        traceback.print_exc()
+        flash(f"Error saving prediction: {e}", category="error")
+        return redirect(url_for('views.home'))
 
 @views.route('/records')
 @login_required

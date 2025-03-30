@@ -1,0 +1,80 @@
+/* Navbar background color */
+.bg-green {
+    background-color: #355B25; /* Same green as your login button */
+  }
+  
+  /* Brand logo (circle image placeholder) */
+  .brand-logo {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+  }
+  
+  /* Main container fixed at 1024×600 */
+  .main-container {
+    width: 1024px;
+    height: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+  }
+  
+  /* Center content wrapper */
+  .center-content {
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+  }
+  
+  /* Inner container to align heading and boxes */
+  .inner-content {
+    width: 100%;
+  }
+  
+  /* Row styling for boxes */
+  .readings-row {
+    width: 100%;
+    margin: 0 auto;
+  }
+  
+  /* Reading Boxes - golden border */
+  .reading-box {
+    background-color: #fff;
+    border: 4px solid #B58C05; /* Golden border */
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease;
+    height: 220px;
+  }
+  .reading-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+  }
+  
+  /* Label with icon */
+  .reading-label span {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #333;
+  }
+  
+  /* Large reading value */
+  .reading-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #000;
+  }
+  
+  /* Predict button styling */
+  .btn-green {
+    background-color: #355B25;
+    border-color: #355B25;
+    color: #fff;
+    font-weight: 600;
+  }
+  .btn-green:hover {
+    background-color: #2a481c;
+    border-color: #2a481c;
+  }
+  

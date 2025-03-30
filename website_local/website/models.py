@@ -14,7 +14,10 @@ class User(db.Model, UserMixin):
 class DryingRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime(timezone=True), default=func.now())
-    
+
+    # New field
+    batch_name = db.Column(db.String(150), nullable=False)
+
     # Sensor and drying input values
     initial_weight = db.Column(db.Float, nullable=False)
     temperature = db.Column(db.Float, nullable=False)
@@ -22,13 +25,16 @@ class DryingRecord(db.Model):
     sensor_value = db.Column(db.Float, nullable=False)
     initial_moisture = db.Column(db.Float, nullable=False)
     final_moisture = db.Column(db.Float, nullable=False)
-    
+
     # Prediction results
-    drying_time = db.Column(db.String(10), nullable=False) 
+    drying_time = db.Column(db.String(10), nullable=False)
     final_weight = db.Column(db.Float, nullable=False)
 
+    # New field: Shelf life derived from final_moisture
+    shelf_life = db.Column(db.String(50), nullable=False)
+
     # Relationship
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # nullable=True if user login is optional
 
     # Crop cycle dates
     date_planted = db.Column(db.Date)

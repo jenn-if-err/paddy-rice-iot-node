@@ -1,38 +1,71 @@
 {% extends "base.html" %}
-{% block title %}Reading Page{% endblock %}
+{% block title %}Readings{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/readings.css') }}">
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="card p-4 shadow">
-        <h2 class="text-center mb-4">Reading Page</h2>
-        <form method="POST" action="{{ url_for('views.calculate') }}">
-            <!-- Hidden Fields: carry data to calculation -->
-            <input type="hidden" name="initial_weight" value="{{ initial_weight }}">
-            <input type="hidden" name="final_moisture" value="{{ final_moisture }}">
-            <input type="hidden" name="sensor_value" value="{{ sensor_value }}">
-            <input type="hidden" name="temperature" value="{{ temperature }}">
-            <input type="hidden" name="humidity" value="{{ humidity }}">
-            <input type="hidden" name="moisture_content" value="{{ moisture_content }}">
-            <input type="hidden" name="date_planted" value="{{ date_planted }}">
-            <input type="hidden" name="date_harvested" value="{{ date_harvested }}">
-            <input type="hidden" name="date_dried" value="{{ date_dried }}">
+<!-- Main Container -->
+<div class="main-container d-flex flex-column">
+  <div class="center-content d-flex flex-column justify-content-center">
+    <div class="inner-content mx-auto" style="max-width: 900px;">
+      <!-- Heading -->
+      <h3 class="fw-bold mb-3 text-start">Readings</h3>
 
-            <!-- Sensor Display -->
-            <div class="mb-3">
-                <label class="form-label">Moisture Content (%)</label>
-                <p class="form-control text-center fw-bold">{{ moisture_content or '--' }}</p>
+      <form method="POST" action="{{ url_for('views.calculate') }}">
+        <!-- Hidden Fields -->
+        <input type="hidden" name="batch_name" value="{{ batch_name }}">
+        <input type="hidden" name="initial_weight" value="{{ initial_weight }}">
+        <input type="hidden" name="final_moisture" value="{{ final_moisture }}">
+        <input type="hidden" name="sensor_value" value="{{ sensor_value }}">
+        <input type="hidden" name="temperature" value="{{ temperature }}">
+        <input type="hidden" name="humidity" value="{{ humidity }}">
+        <input type="hidden" name="moisture_content" value="{{ moisture_content }}">
+        <input type="hidden" name="date_planted" value="{{ date_planted }}">
+        <input type="hidden" name="date_harvested" value="{{ date_harvested }}">
+        
+        <!-- Sensor Readings Grid -->
+        <div class="row g-3 readings-row">
+          <!-- Moisture Content -->
+          <div class="col-md-4">
+            <div class="reading-box text-center p-4">
+              <div class="reading-label d-flex align-items-center justify-content-center mb-3">
+                <i class="bi bi-droplet-fill me-2 fs-3"></i>
+                <span>Moisture Content</span>
+              </div>
+              <div class="reading-value">{{ moisture_content }}%</div>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Temperature (°C)</label>
-                <p class="form-control text-center fw-bold">{{ temperature or '--' }}</p>
+          </div>
+          <!-- Temperature -->
+          <div class="col-md-4">
+            <div class="reading-box text-center p-4">
+              <div class="reading-label d-flex align-items-center justify-content-center mb-3">
+                <i class="bi bi-thermometer-half me-2 fs-3"></i>
+                <span>Temperature</span>
+              </div>
+              <div class="reading-value">{{ temperature }}°C</div>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Humidity (%)</label>
-                <p class="form-control text-center fw-bold">{{ humidity or '--' }}</p>
+          </div>
+          <!-- Humidity -->
+          <div class="col-md-4">
+            <div class="reading-box text-center p-4">
+              <div class="reading-label d-flex align-items-center justify-content-center mb-3">
+                <i class="bi bi-cloud-rain me-2 fs-3"></i>
+                <span>Humidity</span>
+              </div>
+              <div class="reading-value">{{ humidity }}%</div>
             </div>
+          </div>
+        </div>
 
-            <button type="submit" class="btn btn-success w-100 mt-3">Predict</button>
-        </form>
+        <!-- Predict Button -->
+        <div class="d-flex justify-content-end mt-4">
+          <button type="submit" class="btn btn-green px-5 py-3 fs-5">Predict</button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
 {% endblock %}
