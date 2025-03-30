@@ -5,27 +5,39 @@ from mlmodels.moisture_model.predict_moisture import predict_moisture
 from .models import DryingRecord
 from . import db
 from datetime import datetime, date, timedelta
-import serial, traceback, time
+import serial, traceback, time, platform
 from dateutil.relativedelta import relativedelta
 
 
 views = Blueprint('views', __name__)
 
+
 def read_arduino_serial():
     try:
-        with serial.Serial('COM4', 115200, timeout=2) as ser:
+        # Detect OS and choose port
+        if platform.system() == 'Windows':
+            port = 'COM4'
+        else:
+            port = '/dev/ttyUSB0'  # or '/dev/ttyACM0' 
+
+        with serial.Serial(port, 115200, timeout=2) as ser:
             time.sleep(2)
             ser.reset_input_buffer()
             ser.write(b'read\n')
             print("Sent 'read' to Arduino. Waiting for response...")
             line = ser.readline().decode().strip()
             print("Arduino says:", line)
+
             parts = line.split(",")
             if len(parts) == 3:
                 return float(parts[0]), float(parts[1]), float(parts[2])
+            else:
+                print("Invalid response format from Arduino.")
     except Exception as e:
         print("Error reading from Arduino:", e)
+
     return None, None, None
+
 
 @views.route('/', methods=['GET', 'POST'])
 @login_required
