@@ -169,3 +169,22 @@ def save_prediction():
 def records():
     user_records = DryingRecord.query.filter_by(user_id=current_user.id).order_by(DryingRecord.timestamp.desc()).all()
     return render_template("records.html", user=current_user, records=user_records)
+
+@views.route('/delete-records', methods=['POST'])
+@login_required
+def delete_records():
+    action = request.form.get('action')
+    user_id = current_user.id
+
+    if action == 'delete_selected':
+        ids = request.form.getlist('record_ids')
+        if ids:
+            DryingRecord.query.filter(DryingRecord.user_id == user_id, DryingRecord.id.in_(ids)).delete(synchronize_session=False)
+            db.session.commit()
+            flash(f"Deleted {len(ids)} record(s).", "success")
+    elif action == 'clear_all':
+        DryingRecord.query.filter_by(user_id=user_id).delete()
+        db.session.commit()
+        flash("All records cleared.", "success")
+
+    return redirect(url_for('views.records'))

@@ -9,52 +9,147 @@
 {% block content %}
 <div class="container-fluid py-3 flex-grow-1">
   <div class="info-box">
-    <h3 class="fw-bold text-start mb-4">
-      <i class="bi bi-clock-history me-2"></i> Drying History
-    </h3>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="fw-bold text-start mb-0">
+        <i class="bi bi-clock-history me-2"></i> Drying History
+      </h3>
+
+      {% if records %}
+      <div id="delete-actions" class="d-flex align-items-center gap-2 ms-auto">
+        <!-- Delete icon shown by default -->
+        <button id="toggle-delete-mode" type="button" class="btn btn-outline-danger btn-sm">
+          <i class="bi bi-trash3-fill"></i>
+        </button>
+
+        <!-- Delete Selected and Clear All (hidden initially) -->
+        <form method="POST" action="{{ url_for('views.delete_records') }}" id="delete-form" class="d-flex align-items-center gap-2 mb-0 d-none">
+          <input type="hidden" name="action" id="delete-action">
+          <button type="button" id="clear-all-btn" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-trash3-fill me-1"></i> Clear All
+          </button>
+          <button type="button" id="delete-selected-btn" class="btn btn-danger btn-sm">
+            <i class="bi bi-check2-square me-1"></i> Delete Selected
+          </button>
+          <button type="button" id="cancel-delete" class="btn btn-secondary btn-sm">Cancel</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
 
     {% if records %}
-    <div class="table-responsive">
-      <table class="table table-bordered align-middle text-center">
-        <thead style="background-color: #355B25; color: white;">
-          <tr>
-            <th>Batch Name</th>
-            <th>Due Date</th>
-            <th>Date Planted</th>
-            <th>Date Harvested</th>
-            <th>Date Dried</th>
-            <th>Initial Weight</th>
-            <th>Final Weight</th>
-            <th>Initial MC</th>
-            <th>Final MC</th>
-            <th>Temperature</th>
-            <th>Humidity</th>
-            <th>Drying Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in records %}
-          <tr>
-            <td>{{ r.batch_name }}</td>
-            <td>{{ r.shelf_life }}</td>
-            <td>{{ r.date_planted.strftime('%Y-%m-%d') if r.date_planted else '—' }}</td>
-            <td>{{ r.date_harvested.strftime('%Y-%m-%d') if r.date_harvested else '—' }}</td>
-            <td>{{ r.date_dried.strftime('%Y-%m-%d') if r.date_dried else '—' }}</td>
-            <td>{{ r.initial_weight }} kg</td>
-            <td>{{ r.final_weight }} kg</td>
-            <td>{{ r.initial_moisture }}%</td>
-            <td>{{ r.final_moisture }}%</td>
-            <td>{{ r.temperature }}°C</td>
-            <td>{{ r.humidity }}%</td>
-            <td>{{ r.drying_time }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <form method="POST" action="{{ url_for('views.delete_records') }}" id="checkbox-form">
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle text-center">
+          <thead style="background-color: #355B25; color: white;">
+            <tr>
+              <th class="delete-column d-none"></th>
+              <th>Batch Name</th>
+              <th>Due Date</th>
+              <th>Date Planted</th>
+              <th>Date Harvested</th>
+              <th>Date Dried</th>
+              <th>Initial Weight</th>
+              <th>Final Weight</th>
+              <th>Initial MC</th>
+              <th>Final MC</th>
+              <th>Temperature</th>
+              <th>Humidity</th>
+              <th>Drying Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in records %}
+            <tr>
+              <td class="delete-column d-none">
+                <input type="checkbox" name="record_ids" value="{{ r.id }}">
+              </td>
+              <td>{{ r.batch_name }}</td>
+              <td>{{ r.shelf_life }}</td>
+              <td>{{ r.date_planted.strftime('%Y-%m-%d') if r.date_planted else '—' }}</td>
+              <td>{{ r.date_harvested.strftime('%Y-%m-%d') if r.date_harvested else '—' }}</td>
+              <td>{{ r.date_dried.strftime('%Y-%m-%d') if r.date_dried else '—' }}</td>
+              <td>{{ r.initial_weight }} kg</td>
+              <td>{{ r.final_weight }} kg</td>
+              <td>{{ r.initial_moisture }}%</td>
+              <td>{{ r.final_moisture }}%</td>
+              <td>{{ r.temperature }}°C</td>
+              <td>{{ r.humidity }}%</td>
+              <td>{{ r.drying_time }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </form>
+
+    <!-- Modal -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title" id="confirmModalLabel">Confirm Deletion</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            Are you sure you want to delete the selected records?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" form="checkbox-form" class="btn btn-danger" id="confirmDeleteBtn">Yes, Delete</button>
+          </div>
+        </div>
+      </div>
     </div>
+
     {% else %}
     <p class="text-center">No drying records available.</p>
     {% endif %}
   </div>
 </div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+  const toggleBtn = document.getElementById('toggle-delete-mode');
+  const deleteCols = document.querySelectorAll('.delete-column');
+  const deleteForm = document.getElementById('delete-form');
+  const cancelBtn = document.getElementById('cancel-delete');
+  const trashIconBtn = document.getElementById('toggle-delete-mode');
+  const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+  const clearAllBtn = document.getElementById('clear-all-btn');
+  const deleteActionInput = document.getElementById('delete-action');
+  const confirmModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  const checkboxForm = document.getElementById('checkbox-form');
+
+  let pendingAction = null;
+
+  // Toggle delete mode
+  toggleBtn?.addEventListener('click', () => {
+    deleteCols.forEach(col => col.classList.remove('d-none'));
+    deleteForm.classList.remove('d-none');
+    trashIconBtn.classList.add('d-none');
+  });
+
+  // Cancel delete mode
+  cancelBtn?.addEventListener('click', () => {
+    deleteCols.forEach(col => col.classList.add('d-none'));
+    deleteForm.classList.add('d-none');
+    trashIconBtn.classList.remove('d-none');
+  });
+
+  // Handle Delete Selected
+  deleteSelectedBtn?.addEventListener('click', () => {
+    deleteActionInput.value = 'delete_selected';
+    confirmModal.show();
+  });
+
+  // Handle Clear All
+  clearAllBtn?.addEventListener('click', () => {
+    deleteActionInput.value = 'clear_all';
+    confirmModal.show();
+  });
+
+  // Submit handled by form attribute in confirmDeleteBtn
+</script>
 {% endblock %}
