@@ -93,7 +93,7 @@ def calculate():
         final_weight = round(initial_weight * ((1 - moisture_content / 100) / (1 - final_moisture / 100)), 2)
 
         date_dried = date.today()
-        # Compute shelf life as future date
+
         if final_moisture == 14:
             shelf_life = date_dried + timedelta(weeks=3)
         elif final_moisture == 12:
