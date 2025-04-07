@@ -8,5 +8,3 @@ numpy==1.26.4
 pandas==2.2.1
 pyserial==3.5
 
-# Optional: for managing .env files
-python-dotenv==1.0.1

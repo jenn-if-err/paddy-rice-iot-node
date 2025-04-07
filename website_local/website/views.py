@@ -188,3 +188,29 @@ def delete_records():
         flash("All records cleared.", "success")
 
     return redirect(url_for('views.records'))
+
+@views.route('/update-record/<int:record_id>', methods=['POST'])
+@login_required
+def update_record(record_id):
+    record = DryingRecord.query.get_or_404(record_id)
+
+    try:
+        record.batch_name = request.form.get('batch_name')
+        record.date_planted = request.form.get('date_planted')
+        record.date_harvested = request.form.get('date_harvested')
+        record.date_dried = request.form.get('date_dried')
+
+        # Optional: convert strings to actual dates
+        if record.date_planted:
+            record.date_planted = datetime.strptime(record.date_planted, "%Y-%m-%d").date()
+        if record.date_harvested:
+            record.date_harvested = datetime.strptime(record.date_harvested, "%Y-%m-%d").date()
+        if record.date_dried:
+            record.date_dried = datetime.strptime(record.date_dried, "%Y-%m-%d").date()
+
+        db.session.commit()
+        flash("Record updated successfully!", "success")
+    except Exception as e:
+        flash(f"Error updating record: {e}", "danger")
+
+    return redirect(url_for('views.records'))

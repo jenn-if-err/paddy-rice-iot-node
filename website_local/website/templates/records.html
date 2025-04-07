@@ -16,12 +16,9 @@
 
       {% if records %}
       <div id="delete-actions" class="d-flex align-items-center gap-2 ms-auto">
-        <!-- Delete icon shown by default -->
         <button id="toggle-delete-mode" type="button" class="btn btn-outline-danger btn-sm">
           <i class="bi bi-trash3-fill"></i>
         </button>
-
-        <!-- Delete Selected and Clear All (hidden initially) -->
         <form method="POST" action="{{ url_for('views.delete_records') }}" id="delete-form" class="d-flex align-items-center gap-2 mb-0 d-none">
           <input type="hidden" name="action" id="delete-action">
           <button type="button" id="clear-all-btn" class="btn btn-outline-danger btn-sm">
@@ -55,6 +52,7 @@
               <th>Temperature</th>
               <th>Humidity</th>
               <th>Drying Time</th>
+              <th>Edit</th>
             </tr>
           </thead>
           <tbody>
@@ -75,14 +73,61 @@
               <td>{{ r.temperature }}°C</td>
               <td>{{ r.humidity }}%</td>
               <td>{{ r.drying_time }}</td>
+              <td>
+                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editModal{{ r.id }}">
+                  <i class="bi bi-pencil"></i>
+                </button>
+              </td>
             </tr>
+
+            <!-- Edit Modal -->
+            <div class="modal fade" id="editModal{{ r.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ r.id }}" aria-hidden="true">
+              <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                  <form method="POST" action="{{ url_for('views.update_record', record_id=r.id) }}">
+                    <div class="modal-header bg-primary text-white">
+                      <h5 class="modal-title" id="editModalLabel{{ r.id }}">Edit Record - {{ r.batch_name }}</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="row g-3">
+                        <div class="col-md-6">
+                          <label class="form-label">Batch Name</label>
+                          <input type="text" name="batch_name" class="form-control" value="{{ r.batch_name }}">
+                        </div>
+                        <div class="col-md-6">
+                          <label class="form-label">Due Date (Shelf Life)</label>
+                          <input type="text" name="shelf_life" class="form-control" value="{{ r.shelf_life }}">
+                        </div>
+                        <div class="col-md-4">
+                          <label class="form-label">Date Planted</label>
+                          <input type="date" name="date_planted" class="form-control" value="{{ r.date_planted }}">
+                        </div>
+                        <div class="col-md-4">
+                          <label class="form-label">Date Harvested</label>
+                          <input type="date" name="date_harvested" class="form-control" value="{{ r.date_harvested }}">
+                        </div>
+                        <div class="col-md-4">
+                          <label class="form-label">Date Dried</label>
+                          <input type="date" name="date_dried" class="form-control" value="{{ r.date_dried }}">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
             {% endfor %}
           </tbody>
         </table>
       </div>
     </form>
 
-    <!-- Modal -->
+    <!-- Confirm Delete Modal -->
     <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -90,9 +135,7 @@
             <h5 class="modal-title" id="confirmModalLabel">Confirm Deletion</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
-          <div class="modal-body">
-            Are you sure you want to delete the selected records?
-          </div>
+          <div class="modal-body">Are you sure you want to delete the selected records?</div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             <button type="submit" form="checkbox-form" class="btn btn-danger" id="confirmDeleteBtn">Yes, Delete</button>
@@ -119,37 +162,27 @@
   const clearAllBtn = document.getElementById('clear-all-btn');
   const deleteActionInput = document.getElementById('delete-action');
   const confirmModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-  const checkboxForm = document.getElementById('checkbox-form');
 
-  let pendingAction = null;
-
-  // Toggle delete mode
   toggleBtn?.addEventListener('click', () => {
     deleteCols.forEach(col => col.classList.remove('d-none'));
     deleteForm.classList.remove('d-none');
     trashIconBtn.classList.add('d-none');
   });
 
-  // Cancel delete mode
   cancelBtn?.addEventListener('click', () => {
     deleteCols.forEach(col => col.classList.add('d-none'));
     deleteForm.classList.add('d-none');
     trashIconBtn.classList.remove('d-none');
   });
 
-  // Handle Delete Selected
   deleteSelectedBtn?.addEventListener('click', () => {
     deleteActionInput.value = 'delete_selected';
     confirmModal.show();
   });
 
-  // Handle Clear All
   clearAllBtn?.addEventListener('click', () => {
     deleteActionInput.value = 'clear_all';
     confirmModal.show();
   });
-
-  // Submit handled by form attribute in confirmDeleteBtn
 </script>
 {% endblock %}
