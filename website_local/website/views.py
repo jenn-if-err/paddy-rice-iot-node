@@ -179,9 +179,17 @@ def delete_records():
     if action == 'delete_selected':
         ids = request.form.getlist('record_ids')
         if ids:
-            DryingRecord.query.filter(DryingRecord.user_id == user_id, DryingRecord.id.in_(ids)).delete(synchronize_session=False)
+            records_to_delete = DryingRecord.query.filter(
+                DryingRecord.user_id == user_id,
+                DryingRecord.id.in_(ids)
+            ).all()
+            for record in records_to_delete:
+                db.session.delete(record)
             db.session.commit()
             flash(f"Deleted {len(ids)} record(s).", "success")
+        else:
+            flash("No records selected.", "warning")
+
     elif action == 'clear_all':
         DryingRecord.query.filter_by(user_id=user_id).delete()
         db.session.commit()
@@ -189,28 +197,59 @@ def delete_records():
 
     return redirect(url_for('views.records'))
 
-@views.route('/update-record/<int:record_id>', methods=['POST'])
+
+@views.route('/update_record/<int:record_id>', methods=['POST'])
 @login_required
 def update_record(record_id):
-    record = DryingRecord.query.get_or_404(record_id)
-
     try:
-        record.batch_name = request.form.get('batch_name')
-        record.date_planted = request.form.get('date_planted')
-        record.date_harvested = request.form.get('date_harvested')
-        record.date_dried = request.form.get('date_dried')
+        record = DryingRecord.query.get_or_404(record_id)
 
-        # Optional: convert strings to actual dates
-        if record.date_planted:
-            record.date_planted = datetime.strptime(record.date_planted, "%Y-%m-%d").date()
-        if record.date_harvested:
-            record.date_harvested = datetime.strptime(record.date_harvested, "%Y-%m-%d").date()
-        if record.date_dried:
-            record.date_dried = datetime.strptime(record.date_dried, "%Y-%m-%d").date()
+        if record.user_id != current_user.id:
+            flash("Unauthorized update attempt.", "danger")
+            return redirect(url_for('views.records'))
+
+        # Text/date fields
+        record.batch_name = request.form.get('batch_name') or record.batch_name
+        record.date_planted = datetime.strptime(request.form.get('date_planted'), '%Y-%m-%d') if request.form.get('date_planted') else record.date_planted
+        record.date_harvested = datetime.strptime(request.form.get('date_harvested'), '%Y-%m-%d') if request.form.get('date_harvested') else record.date_harvested
+        record.date_dried = datetime.strptime(request.form.get('date_dried'), '%Y-%m-%d') if request.form.get('date_dried') else record.date_dried
+
+        # Numeric fields with fallback to current value
+        if request.form.get('initial_weight'):
+            record.initial_weight = float(request.form.get('initial_weight'))
+
+        if request.form.get('final_weight'):
+            record.final_weight = float(request.form.get('final_weight'))
+
+        if request.form.get('initial_moisture'):
+            record.initial_moisture = float(request.form.get('initial_moisture'))
+
+        if request.form.get('final_moisture'):
+            record.final_moisture = float(request.form.get('final_moisture'))
+
+        if request.form.get('temperature'):
+            record.temperature = float(request.form.get('temperature'))
+
+        if request.form.get('humidity'):
+            record.humidity = float(request.form.get('humidity'))
+
+        # Recalculate drying time
+        hours, minutes = predict_drying_time(record.initial_moisture, record.temperature, record.humidity, record.final_moisture)
+        record.drying_time = f"{hours}:{minutes:02d}"
+
+        # Update shelf life
+        if record.final_moisture == 14:
+            record.shelf_life = "3 weeks"
+        elif record.final_moisture == 12:
+            record.shelf_life = "12 months"
+        else:
+            record.shelf_life = "1 year and 3 months"
 
         db.session.commit()
-        flash("Record updated successfully!", "success")
+        flash("Record updated successfully.", "success")
+
     except Exception as e:
+        traceback.print_exc()
         flash(f"Error updating record: {e}", "danger")
 
     return redirect(url_for('views.records'))
