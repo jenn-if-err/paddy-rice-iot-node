@@ -100,7 +100,13 @@ def calculate():
 
 
         hours, minutes = predict_drying_time(moisture_content, temperature, humidity, final_moisture)
-        drying_time = f"{hours}:{minutes:02d}"
+        if hours and minutes:
+            drying_time = f"{hours} hrs {minutes} mins"
+        elif hours:
+            drying_time = f"{hours} hr"
+        else:
+            drying_time = f"{minutes} min"
+
 
         final_weight = round(initial_weight * ((1 - moisture_content / 100) / (1 - final_moisture / 100)), 2)
 
