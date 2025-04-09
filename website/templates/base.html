@@ -16,41 +16,35 @@
 </head>
 <body>
 
-<!-- Navbar -->
+<!-- Navbar (Logo only) -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-green px-4">
     <div class="container-fluid d-flex align-items-center">
         <a class="navbar-brand d-flex align-items-center" href="/">
             <img src="{{ url_for('static', filename='assets/logo.svg') }}" alt="Logo" class="brand-logo rounded-circle me-2">
             <span class="fw-bold text-white fs-5">Paddy Rice Tracker</span>
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse justify-content-end align-items-center" id="topNav">
-            <ul class="navbar-nav d-flex align-items-center">
-                {% if user and user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/' %}active fw-bold{% endif %}" href="/">Home</a>
-                    </li>
-                    <li class="nav-item ms-3">
-                        <a class="nav-link {% if request.path.startswith('/records') %}active fw-bold{% endif %}" href="/records">Records</a>
-                    </li>
-                    <li class="nav-item ms-3">
-                        <a class="nav-link" href="/logout">Logout</a>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/login' %}active fw-bold{% endif %}" href="/login">Login</a>
-                    </li>
-                    <li class="nav-item ms-3">
-                        <a class="nav-link {% if request.path == '/sign-up' %}active fw-bold{% endif %}" href="/sign-up">Sign Up</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
     </div>
 </nav>
+
+<!-- Barangay + Farmer Info + Switch Farmer Button -->
+{% if user and user.is_authenticated %}
+    <div class="alert alert-success text-center rounded-0 mb-0 py-2 d-flex justify-content-center align-items-center flex-wrap gap-2">
+        <div>
+            Device unlocked for <strong>{{ user.barangay_name }}</strong>
+            {% if session.farmer_name %}
+                &mdash; Farmer: <strong>{{ session.farmer_name }}</strong>
+            {% endif %}
+        </div>
+
+        {% if session.farmer_name %}
+        <form action="{{ url_for('auth.login_farmer') }}" method="get" class="ms-3">
+            <button class="btn btn-sm btn-light px-3 py-1" type="submit">
+                <i class="bi bi-arrow-repeat me-1"></i> Switch Farmer
+            </button>
+        </form>
+        {% endif %}
+    </div>
+{% endif %}
 
 <!-- Flash messages -->
 <div class="container mt-3">

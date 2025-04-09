@@ -1,1 +1,0 @@
-# live server, admin side

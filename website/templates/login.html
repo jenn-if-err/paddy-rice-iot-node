@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Paddy Rice - Log in</title>
+  <title>Barangay Login - Paddy Rice Tracker</title>
   <!-- Local Bootstrap CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='boot/css/bootstrap.imp.min.css') }}">
   <!-- Bootstrap Icons -->
@@ -20,7 +20,7 @@
 
       <!-- Right side: Login -->
       <div class="right-col">
-        <h2 class="mb-3 text-center">Welcome!</h2>
+        <h2 class="mb-3 text-center">Barangay Login</h2>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
@@ -33,7 +33,7 @@
           {% endif %}
         {% endwith %}
 
-        <form method="POST" action="{{ url_for('auth.login') }}">
+        <form method="POST" action="{{ url_for('auth.login_barangay') }}">
           <!-- Email -->
           <div class="form-group mb-3 w-75 mx-auto">
             <label for="email" class="visually-hidden">Email</label>

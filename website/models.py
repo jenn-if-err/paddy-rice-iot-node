@@ -2,20 +2,35 @@ from . import db
 from flask_login import UserMixin
 from sqlalchemy.sql import func
 
-class User(db.Model, UserMixin):
+### BARANGAY USER (for logging into the device) ###
+class BarangayUser(db.Model, UserMixin):
+    __tablename__ = 'barangay_users'
+
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(150), unique=True, nullable=False)
+    email = db.Column(db.String(150), unique=True, nullable=False)  # Email-based login
     password = db.Column(db.String(150), nullable=False)
-    first_name = db.Column(db.String(150), nullable=False)
+    barangay_name = db.Column(db.String(150), nullable=False)
 
-    records = db.relationship('DryingRecord', backref='user', lazy=True)
+    farmers = db.relationship('Farmer', backref='barangay_user', lazy=True)
 
+### FARMER (individual user who logs in after barangay login) ###
+class Farmer(db.Model):
+    __tablename__ = 'farmers'
 
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+    full_name = db.Column(db.String(150), nullable=False)
+    barangay_id = db.Column(db.Integer, db.ForeignKey('barangay_users.id'), nullable=False)
+
+    records = db.relationship('DryingRecord', backref='farmer', lazy=True)
+
+### DRYING RECORD (linked to Farmer) ###
 class DryingRecord(db.Model):
+    __tablename__ = 'drying_records'
+
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime(timezone=True), default=func.now())
-
-    # New field
     batch_name = db.Column(db.String(150), nullable=False)
 
     # Sensor and drying input values
@@ -29,12 +44,10 @@ class DryingRecord(db.Model):
     # Prediction results
     drying_time = db.Column(db.String(10), nullable=False)
     final_weight = db.Column(db.Float, nullable=False)
-
-    # New field: Shelf life derived from final_moisture
     shelf_life = db.Column(db.String(50), nullable=False)
 
-    # Relationship
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # nullable=True if user login is optional
+    # Foreign key: linked to Farmer
+    farmer_id = db.Column(db.Integer, db.ForeignKey('farmers.id'), nullable=False)
 
     # Crop cycle dates
     date_planted = db.Column(db.Date)

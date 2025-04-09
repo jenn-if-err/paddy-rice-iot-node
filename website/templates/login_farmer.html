@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Paddy Rice - Log in</title>
+  <title>Farmer Login - Paddy Rice Tracker</title>
   <!-- Local Bootstrap CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='boot/css/bootstrap.imp.min.css') }}">
   <!-- Bootstrap Icons -->
@@ -18,9 +18,16 @@
         <img src="{{ url_for('static', filename='assets/paddy rice tracker.svg') }}" alt="Paddy Rice Logo" class="paddy-logo">
       </div>
 
-      <!-- Right side: Login -->
+      <!-- Right side: Farmer Login -->
       <div class="right-col">
-        <h2 class="mb-3 text-center">Welcome!</h2>
+        <h2 class="mb-2 text-center">Farmer Login</h2>
+
+        <!-- Barangay info -->
+        {% if current_user.is_authenticated %}
+        <p class="text-center text-muted small mb-4">
+          Logging in under <strong>{{ current_user.barangay_name }}</strong>
+        </p>
+        {% endif %}
 
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
@@ -33,11 +40,11 @@
           {% endif %}
         {% endwith %}
 
-        <form method="POST" action="{{ url_for('auth.login') }}">
-          <!-- Email -->
+        <form method="POST" action="{{ url_for('auth.login_farmer') }}">
+          <!-- Username -->
           <div class="form-group mb-3 w-75 mx-auto">
-            <label for="email" class="visually-hidden">Email</label>
-            <input type="email" class="form-control form-control-lg input-field" id="email" name="email" placeholder="Email Address" required>
+            <label for="username" class="visually-hidden">Username</label>
+            <input type="text" class="form-control form-control-lg input-field" id="username" name="username" placeholder="Username" required>
           </div>
 
           <!-- Password -->
@@ -49,15 +56,11 @@
 
           <!-- Submit -->
           <div class="form-group w-75 mx-auto">
-            <button type="submit" class="btn btn-success btn-lg w-100 login-btn">Log in</button>
+            <button type="submit" class="btn btn-primary btn-lg w-100 login-btn">
+              <i class="bi bi-person-circle me-2"></i> Log in
+            </button>
           </div>
         </form>
-
-        <!-- Sign Up Redirect -->
-        <div class="form-group w-75 mx-auto mt-3 text-center">
-          <p class="small mb-2">Don't have an account?</p>
-          <a href="{{ url_for('auth.sign_up') }}" class="btn btn-outline-secondary btn-sm px-4">Sign Up</a>
-        </div>
       </div>
     </div>
   </div>
