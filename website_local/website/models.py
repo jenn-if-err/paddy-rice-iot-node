@@ -31,7 +31,7 @@ class DryingRecord(db.Model):
     final_weight = db.Column(db.Float, nullable=False)
 
     # New field: Shelf life derived from final_moisture
-    shelf_life = db.Column(db.String(50), nullable=False)
+    due_date = db.Column(db.String(50), nullable=False)
 
     # Relationship
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # nullable=True if user login is optional

@@ -107,11 +107,11 @@ def calculate():
         date_dried = date.today()
 
         if final_moisture == 14:
-            shelf_life = date_dried + timedelta(weeks=3)
+            due_date = date_dried + timedelta(weeks=3)
         elif final_moisture == 12:
-            shelf_life = date_dried + relativedelta(months=12)
+            due_date = date_dried + relativedelta(months=12)
         else:
-            shelf_life = date_dried + relativedelta(years=1, months=3)
+            due_date = date_dried + relativedelta(years=1, months=3)
 
         return render_template("prediction.html", user=current_user,
                                batch_name=batch_name,
@@ -123,7 +123,7 @@ def calculate():
                                final_moisture=final_moisture,
                                drying_time=drying_time,
                                final_weight=final_weight,
-                               shelf_life=shelf_life,
+                               due_date=due_date,
                                date_planted=date_planted,
                                date_harvested=date_harvested,
                                date_dried=date_dried)
@@ -148,7 +148,7 @@ def save_prediction():
             final_moisture=float(data.get('final_moisture')),
             drying_time=data.get('drying_time'),
             final_weight=float(data.get('final_weight')),
-            shelf_life=data.get('shelf_life'),
+            due_date=data.get('due_date'),
             date_planted=datetime.strptime(data.get('date_planted'), "%Y-%m-%d").date(),
             date_harvested=datetime.strptime(data.get('date_harvested'), "%Y-%m-%d").date(),
             date_dried=datetime.strptime(data.get('date_dried'), "%Y-%m-%d").date(),
