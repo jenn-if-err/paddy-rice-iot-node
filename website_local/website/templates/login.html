@@ -34,10 +34,10 @@
         {% endwith %}
 
         <form method="POST" action="{{ url_for('auth.login') }}">
-          <!-- Email -->
+          <!-- Username -->
           <div class="form-group mb-3 w-75 mx-auto">
-            <label for="email" class="visually-hidden">Email</label>
-            <input type="email" class="form-control form-control-lg input-field" id="email" name="email" placeholder="Email Address" required>
+            <label for="username" class="visually-hidden">Username</label>
+            <input type="text" class="form-control form-control-lg input-field" id="username" name="username" placeholder="Username" required>
           </div>
 
           <!-- Password -->

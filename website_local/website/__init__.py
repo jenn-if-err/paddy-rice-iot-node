@@ -24,7 +24,7 @@ def create_app():
     app.register_blueprint(auth, url_prefix='/')
 
     #import models
-    from .models import User, DryingRecord
+    from .models import Farmer, DryingRecord, Municipality, Barangay
     create_database(app)
 
     # set up Flask-Login
@@ -33,8 +33,16 @@ def create_app():
     login_manager.init_app(app)
 
     @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
+    def load_user(user_id_str):
+        from .models import Farmer
+        
+        try:
+            # Extract the numeric part of the ID
+            if user_id_str.startswith('farmer-'):
+                user_id = user_id_str.split('-')[1]
+                return Farmer.query.get(int(user_id))
+        except (ValueError, AttributeError):
+            return None
 
     return app
 

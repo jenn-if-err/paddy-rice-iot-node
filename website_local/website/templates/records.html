@@ -13,6 +13,10 @@
       <i class="bi bi-clock-history me-2"></i> Drying History
     </h3>
 
+    <form method="POST" action="{{ url_for('views.sync_to_remote') }}" class="mb-3">
+      <button type="submit" class="btn btn-primary">Sync to Remote</button>
+    </form>
+
     {% if records %}
     <div class="table-responsive">
       <table class="table table-bordered align-middle text-center">
@@ -36,7 +40,7 @@
           {% for r in records %}
           <tr>
             <td>{{ r.batch_name }}</td>
-            <td>{{ r.shelf_life }}</td>
+            <td>{{ r.due_date.strftime('%Y-%m-%d') if r.due_date else '—' }}</td>
             <td>{{ r.date_planted.strftime('%Y-%m-%d') if r.date_planted else '—' }}</td>
             <td>{{ r.date_harvested.strftime('%Y-%m-%d') if r.date_harvested else '—' }}</td>
             <td>{{ r.date_dried.strftime('%Y-%m-%d') if r.date_dried else '—' }}</td>
