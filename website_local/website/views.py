@@ -8,6 +8,7 @@ from datetime import datetime, date, timedelta
 import serial, traceback, time, platform, os, requests
 from dateutil.relativedelta import relativedelta
 from .api import authenticate_user, fetch_farmer_data, fetch_related_data
+import uuid
 
 PASSWORD = os.environ.get("REMOTE_PASSWORD")
 views = Blueprint('views', __name__)
@@ -146,7 +147,9 @@ def calculate():
 def save_prediction():
     try:
         data = request.form
+
         new_record = DryingRecord(
+            uuid=str(uuid.uuid4()),  # ✅ unique for syncing
             batch_name=data.get('batch_name'),
             initial_weight=float(data.get('initial_weight')),
             temperature=float(data.get('temperature')),
@@ -156,12 +159,21 @@ def save_prediction():
             final_moisture=float(data.get('final_moisture')),
             drying_time=data.get('drying_time'),
             final_weight=float(data.get('final_weight')),
+
             due_date=datetime.strptime(data.get('due_date'), "%Y-%m-%d").date(),
             date_planted=datetime.strptime(data.get('date_planted'), "%Y-%m-%d").date(),
             date_harvested=datetime.strptime(data.get('date_harvested'), "%Y-%m-%d").date(),
             date_dried=datetime.strptime(data.get('date_dried'), "%Y-%m-%d").date(),
-            farmer_id=current_user.id
+
+            synced=False,  # ✅ not yet uploaded
+            synced_at=None,  # ✅ will be filled during sync
+
+            farmer_id=current_user.id,
+            barangay_id=getattr(current_user, 'barangay_id', None),  # ✅ if available
+            municipality_id=getattr(current_user, 'municipality_id', None),  # optional
+            farmer_name=getattr(current_user, 'full_name', None)  # optional
         )
+
         db.session.add(new_record)
         db.session.commit()
         flash("Prediction saved successfully!", category="success")
