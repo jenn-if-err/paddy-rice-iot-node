@@ -3,6 +3,26 @@ from flask_login import UserMixin
 from sqlalchemy.sql import func
 import uuid
 
+
+class User(db.Model, UserMixin):
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    full_name = db.Column(db.String(150), nullable=False)
+    role = db.Column(db.String(50), nullable=False)  # 'barangay' or 'municipal'
+    password = db.Column(db.String(200), nullable=False)
+
+    municipality_id = db.Column(db.Integer, db.ForeignKey('municipalities.id'), nullable=True)
+    municipality = db.relationship('Municipality', backref=db.backref('users', lazy=True))
+
+    barangay_id = db.Column(db.Integer, db.ForeignKey('barangays.id'), nullable=True)
+    barangay = db.relationship('Barangay', backref=db.backref('users', lazy=True))
+
+    records = db.relationship('DryingRecord', backref='author', lazy=True)
+
+    def get_id(self):
+        return f"user-{self.id}"
 # ========================
 # Farmer Model
 # ========================
@@ -64,6 +84,7 @@ class DryingRecord(db.Model):
     synced = db.Column(db.Boolean, default=False)
     synced_at = db.Column(db.DateTime)
 
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     farmer_id = db.Column(db.Integer, db.ForeignKey('farmers.id'), nullable=False)
     barangay_id = db.Column(db.Integer, db.ForeignKey('barangays.id'), nullable=True)
     municipality_id = db.Column(db.Integer, db.ForeignKey('municipalities.id'), nullable=True)

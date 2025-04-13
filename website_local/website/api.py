@@ -1,7 +1,10 @@
 import requests
 from flask import session
+from flask import Blueprint
 
-REMOTE_URL = "http://localhost:5001"
+api = Blueprint('api', __name__)
+
+REMOTE_URL = "https://paddy-rice-tracker.onrender.com"
 
 def authenticate_user(username, password):
     LOGIN_ENDPOINT = f"{REMOTE_URL}/login"
@@ -19,16 +22,53 @@ def fetch_farmer_data(username):
         return response.json()
     return None
 
-def fetch_related_data():
+def fetch_user_data():
+    USER_ENDPOINT = f"{REMOTE_URL}/api/users"
+    response = requests.get(USER_ENDPOINT)
+
+    print("🧪 USER_ENDPOINT status:", response.status_code)
+    print("🧪 USER_ENDPOINT response text:", response.text)
+
+    if response.status_code == 200:
+        try:
+            return response.json()  # this is now a list
+        except Exception as e:
+            print("❌ JSON decode error:", e)
+            return []
+    else:
+        print("❌ Failed to fetch users:", response.status_code)
+        return []
+
+def fetch_barangay_data():
     BARANGAY_ENDPOINT = f"{REMOTE_URL}/api/barangays"
+    response = requests.get(BARANGAY_ENDPOINT)
+
+    print("🧪 BARANGAY_ENDPOINT status:", response.status_code)
+    print("🧪 BARANGAY_ENDPOINT response text:", response.text)
+
+    if response.status_code == 200:
+        try:
+            return response.json()  # list of barangays
+        except Exception as e:
+            print("❌ JSON decode error:", e)
+            return []
+    else:
+        print("❌ Failed to fetch barangays:", response.status_code)
+        return []
+
+def fetch_municipality_data():
     MUNICIPALITY_ENDPOINT = f"{REMOTE_URL}/api/municipalities"
-    headers = {"Authorization": f"Bearer {session.get('token')}"}
+    response = requests.get(MUNICIPALITY_ENDPOINT)
 
-    barangay_response = requests.get(BARANGAY_ENDPOINT, headers=headers)
-    municipality_response = requests.get(MUNICIPALITY_ENDPOINT, headers=headers)
+    print("🧪 MUNICIPALITY_ENDPOINT status:", response.status_code)
+    print("🧪 MUNICIPALITY_ENDPOINT response text:", response.text)
 
-    if barangay_response.status_code == 200 and municipality_response.status_code == 200:
-        barangays = barangay_response.json()
-        municipalities = municipality_response.json()
-        return barangays, municipalities
-    return None, None
+    if response.status_code == 200:
+        try:
+            return response.json()  # list of municipalities
+        except Exception as e:
+            print("❌ JSON decode error:", e)
+            return []
+    else:
+        print("❌ Failed to fetch municipalities:", response.status_code)
+        return []

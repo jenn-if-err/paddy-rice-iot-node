@@ -2,8 +2,8 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for,
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
-from .api import authenticate_user, fetch_farmer_data, fetch_related_data
-from .models import Farmer, Barangay, Municipality
+from .api import authenticate_user, fetch_farmer_data, fetch_user_data, fetch_barangay_data, fetch_municipality_data
+from .models import Farmer, Barangay, Municipality, User
 import requests
 auth = Blueprint('auth', __name__)
 
@@ -13,87 +13,105 @@ def login():
         username_or_email = request.form.get('username')
         password = request.form.get('password')
 
-        # Check if the farmer exists locally
+        # Try to authenticate as a local farmer
         farmer = Farmer.query.filter_by(username=username_or_email).first()
-
         if farmer and check_password_hash(farmer.password, password):
             login_user(farmer, remember=True)
             flash('Logged in successfully!', category='success')
             return redirect(url_for('views.home'))
-        else:
-            # Attempt to authenticate the user via the remote app
-            REMOTE_URL = "http://localhost:5001"
-            LOGIN_ENDPOINT = f"{REMOTE_URL}/login"
 
-            try:
-                login_resp = requests.post(
-                    LOGIN_ENDPOINT,
-                    data={"email": username_or_email, "password": password},
-                    headers={"Accept": "application/json"}
-                )
+        # Try remote authentication
+        REMOTE_URL = "https://paddy-rice-tracker.onrender.com"
+        LOGIN_ENDPOINT = f"{REMOTE_URL}/login"
 
-                if login_resp.status_code == 200:
-                    # Store password in session to allow syncing records
-                    session['password'] = password
+        try:
+            login_resp = requests.post(
+                LOGIN_ENDPOINT,
+                data={"email": username_or_email, "password": password},
+                headers={"Accept": "application/json"}
+            )
 
-                    # Query the remote database for farmer details
-                    FARMER_ENDPOINT = f"{REMOTE_URL}/api/farmers/{username_or_email}"
-                    farmer_resp = requests.get(FARMER_ENDPOINT, headers={"Accept": "application/json"})
+            if login_resp.status_code == 200:
+                session['password'] = password
 
-                    if farmer_resp.status_code == 200:
-                        farmer_data = farmer_resp.json()
-                        # Create the farmer in the local database
-                        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+                # -------------------------------
+                # ✅ Fetch & store all USERS
+                # -------------------------------
+                from .api import fetch_user_data, fetch_farmer_data, fetch_barangay_data, fetch_municipality_data
 
-                        new_farmer = Farmer(
+                all_users = fetch_user_data()  
+                if all_users:
+                    for u in all_users:
+                        existing_user = User.query.filter_by(email=u['email']).first()
+                        if not existing_user:
+                            db.session.add(User(
+                                id=u['id'],
+                                email=u['email'],
+                                full_name=u['full_name'],
+                                role=u['role'],
+                                password="not_used",
+                                barangay_id=u['barangay_id'],
+                                municipality_id=u['municipality_id']
+                            ))
+                barangays = fetch_barangay_data()
+
+                if barangays:
+                    for b in barangays:
+                        existing = Barangay.query.filter_by(id=b['id']).first()
+                        if existing:
+                            existing.name = b['name']
+                            existing.municipality_id = b['municipality_id']
+                        else:
+                            db.session.add(Barangay(
+                                id=b['id'],
+                                name=b['name'],
+                                municipality_id=b['municipality_id']
+                            ))
+                municipalities = fetch_municipality_data()
+                if municipalities:
+                    for m in municipalities:
+                        existing = Municipality.query.filter_by(id=m['id']).first()
+                        if existing:
+                            existing.name = m['name']
+                        else:
+                            db.session.add(Municipality(
+                                id=m['id'],
+                                name=m['name']
+                            ))
+                # -------------------------------
+                # ✅ Fetch & store Farmer
+                # -------------------------------
+                farmer_data = fetch_farmer_data(username_or_email)
+                if farmer_data:
+                    existing_farmer = Farmer.query.filter_by(username=farmer_data['username']).first()
+                    if not existing_farmer:
+                        db.session.add(Farmer(
+                            uuid=farmer_data['uuid'],
                             username=farmer_data['username'],
-                            password=hashed_password,
+                            password=generate_password_hash(password),
                             first_name=farmer_data['first_name'],
                             middle_name=farmer_data.get('middle_name'),
                             last_name=farmer_data['last_name'],
                             barangay_id=farmer_data['barangay_id']
-                        )
-                        db.session.add(new_farmer)
+                        ))
+                # ✅ Commit everything ONCE
+                db.session.commit()
 
-                        # Fetch and update barangay and municipality data
-                        barangays, municipalities = fetch_related_data()
+                # ✅ Log in the farmer
+                farmer = Farmer.query.filter_by(username=username_or_email).first()
+                if farmer:
+                    login_user(farmer)
+                    flash("Logged in successfully!", "success")
+                    return redirect(url_for("views.home"))
+                else:
+                    flash("Farmer created but login failed.", "error")
 
-                        if barangays:
-                            for barangay_data in barangays:
-                                barangay = Barangay.query.filter_by(id=barangay_data['id']).first()
-                                if barangay:
-                                    barangay.name = barangay_data['name']
-                                    barangay.municipality_id = barangay_data['municipality_id']
-                                else:
-                                    new_barangay = Barangay(
-                                        id=barangay_data['id'],
-                                        name=barangay_data['name'],
-                                        municipality_id=barangay_data['municipality_id']
-                                    )
-                                    db.session.add(new_barangay)
-
-                        if municipalities:
-                            for municipality_data in municipalities:
-                                municipality = Municipality.query.filter_by(id=municipality_data['id']).first()
-                                if municipality:
-                                    municipality.name = municipality_data['name']
-                                else:
-                                    new_municipality = Municipality(
-                                        id=municipality_data['id'],
-                                        name=municipality_data['name']
-                                    )
-                                    db.session.add(new_municipality)
-
-                        db.session.commit()
-
-                        # Log the new farmer in locally
-                        login_user(new_farmer)
-                        return redirect(url_for('views.home'))
-
-            except requests.ConnectionError:
-                flash('No internet connection. Please try again later.', category='error')
+        except requests.ConnectionError:
+            flash("No internet connection. Please try again later.", "error")
 
     return render_template("login.html", user=current_user)
+
+
 
 @auth.route('/logout')
 @login_required 
@@ -108,7 +126,6 @@ def sync():
         # Authenticate and fetch data
         if authenticate_user(current_user.username, session.get('password')):
             farmer_data = fetch_farmer_data(current_user.username)
-            barangays, municipalities = fetch_related_data()
 
             # Store farmer data
             if farmer_data:
@@ -130,6 +147,7 @@ def sync():
                         barangay_id=farmer_data['barangay_id']
                     )
                     db.session.add(new_farmer)
+                    db.session.commit()  # ✅ ADD THIS HERE
 
             # Store barangay and municipality data
             if barangays:
@@ -145,6 +163,7 @@ def sync():
                             municipality_id=barangay_data['municipality_id']
                         )
                         db.session.add(new_barangay)
+                        db.session.commit()  # ✅ ADD THIS HERE
 
             if municipalities:
                 for municipality_data in municipalities:
@@ -157,6 +176,7 @@ def sync():
                             name=municipality_data['name']
                         )
                         db.session.add(new_municipality)
+                        db.session.commit()  # ✅ ADD THIS HERE
 
             db.session.commit()
             flash('Data synced successfully!', category='success')

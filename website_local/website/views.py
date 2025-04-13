@@ -2,13 +2,14 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from mlmodels.drying_time_model.predict_drying_time import predict_drying_time
 from mlmodels.moisture_model.predict_moisture import predict_moisture
-from .models import DryingRecord, Farmer, Municipality, Barangay
+from .models import DryingRecord, Farmer, Municipality, Barangay, User
 from . import db
 from datetime import datetime, date, timedelta
 import serial, traceback, time, platform, os, requests
 from dateutil.relativedelta import relativedelta
-from .api import authenticate_user, fetch_farmer_data, fetch_related_data
+from .api import authenticate_user, fetch_farmer_data, fetch_barangay_data, fetch_municipality_data, fetch_user_data
 import uuid
+from werkzeug.security import generate_password_hash, check_password_hash
 
 PASSWORD = os.environ.get("REMOTE_PASSWORD")
 views = Blueprint('views', __name__)
@@ -25,7 +26,7 @@ def read_arduino_serial():
         # Check if the port is available
         if not os.path.exists(port):
             print("Arduino not found. Using default values.")
-            return 20.0, 25.0, 60.0  # Default sensor_value, temperature, humidity
+            return 20.0, 31.0, 60.0  # Default sensor_value, temperature, humidity
 
         with serial.Serial(port, 115200, timeout=2) as ser:
             time.sleep(2)
@@ -109,7 +110,15 @@ def calculate():
 
 
         hours, minutes = predict_drying_time(moisture_content, temperature, humidity, final_moisture)
-        drying_time = f"{hours}:{minutes:02d}"
+        if hours == 0 and minutes == 0:
+            drying_time = "0 minutes"
+        elif hours == 0:
+            drying_time = f"{minutes} minute{'s' if minutes != 1 else ''}"
+        elif minutes == 0:
+            drying_time = f"{hours} hr{'s' if hours != 1 else ''}"
+        else:
+            drying_time = f"{hours} hr{'s' if hours != 1 else ''}, {minutes} minute{'s' if minutes != 1 else ''}"
+
 
         final_weight = round(initial_weight * ((1 - moisture_content / 100) / (1 - final_moisture / 100)), 2)
 
@@ -148,8 +157,11 @@ def save_prediction():
     try:
         data = request.form
 
+        # ✅ Manually fetch the staff user from the same barangay
+        staff_user = User.query.filter_by(barangay_id=current_user.barangay_id).first()
+
         new_record = DryingRecord(
-            uuid=str(uuid.uuid4()),  # ✅ unique for syncing
+            uuid=str(uuid.uuid4()),
             batch_name=data.get('batch_name'),
             initial_weight=float(data.get('initial_weight')),
             temperature=float(data.get('temperature')),
@@ -165,24 +177,28 @@ def save_prediction():
             date_harvested=datetime.strptime(data.get('date_harvested'), "%Y-%m-%d").date(),
             date_dried=datetime.strptime(data.get('date_dried'), "%Y-%m-%d").date(),
 
-            synced=False,  # ✅ not yet uploaded
-            synced_at=None,  # ✅ will be filled during sync
+            synced=False,
+            synced_at=None,
 
             farmer_id=current_user.id,
-            barangay_id=getattr(current_user, 'barangay_id', None),  # ✅ if available
-            municipality_id=getattr(current_user, 'municipality_id', None),  # optional
-            farmer_name=getattr(current_user, 'full_name', None)  # optional
+            user_id=staff_user.id if staff_user else None,
+            barangay_id=current_user.barangay_id,
+            municipality_id=getattr(current_user.barangay, 'municipality_id', None),
+            farmer_name=current_user.full_name
         )
 
         db.session.add(new_record)
         db.session.commit()
         flash("Prediction saved successfully!", category="success")
-        return redirect(url_for('views.records'))
+        return redirect(url_for("views.records"))
 
     except Exception as e:
+        import traceback
         traceback.print_exc()
         flash(f"Error saving prediction: {e}", category="error")
-        return redirect(url_for('views.home'))
+        return redirect(url_for("views.home"))
+
+
 
 @views.route('/records')
 @login_required
@@ -193,13 +209,12 @@ def records():
 @views.route('/sync-to-remote', methods=['GET', 'POST'])
 @login_required
 def sync_to_remote():
-    REMOTE_URL = "http://localhost:5001"
+    REMOTE_URL = "https://paddy-rice-tracker.onrender.com"
     LOGIN_ENDPOINT = f"{REMOTE_URL}/login"
     SYNC_ENDPOINT = f"{REMOTE_URL}/api/sync"
-    FETCH_ENDPOINT = f"{REMOTE_URL}/api/fetch"
 
-    EMAIL = current_user.email
-    PASSWORD = session.get("password")  # Get password from session (no re-login required)
+    USERNAME = current_user.username
+    PASSWORD = session.get("password")
 
     if not PASSWORD:
         flash("Please log in again to sync.", "danger")
@@ -207,14 +222,25 @@ def sync_to_remote():
 
     session_requests = requests.Session()
 
-    # Log in remotely (using the session's password)
-    login_resp = session_requests.post(LOGIN_ENDPOINT, data={"email": EMAIL, "password": PASSWORD})
+    # Step 1: Login to remote
+    login_resp = session_requests.post(
+        LOGIN_ENDPOINT,
+        data={"email": USERNAME, "password": PASSWORD},
+        headers={"Accept": "application/json"}
+    )
 
-    if "Logged in successfully!" not in login_resp.text:
-        flash("Remote login failed. Check your credentials.", "danger")
+    try:
+        login_result = login_resp.json()
+        if login_result.get("message") != "Logged in successfully!":
+            flash("Remote login failed. Check your credentials.", "danger")
+            return redirect(url_for("views.home"))
+    except Exception as e:
+        print("Login error:", e)
+        print("Login response:", login_resp.text)
+        flash("Remote login failed. Unexpected response.", "danger")
         return redirect(url_for("views.home"))
 
-    # Upload unsynced records
+    # Step 2: Sync Local Records to Remote
     unsynced_records = DryingRecord.query.filter_by(farmer_id=current_user.id, synced=False).all()
 
     if unsynced_records:
@@ -230,69 +256,75 @@ def sync_to_remote():
                 "final_moisture": r.final_moisture,
                 "drying_time": r.drying_time,
                 "final_weight": r.final_weight,
-                "date_planted": r.date_planted,
-                "date_harvested": r.date_harvested,
-                "due_date": r.due_date,
-                "farmer_id": r.farmer_id,
-            } for r in unsynced_records
+                "date_planted": r.date_planted.isoformat() if r.date_planted else None,
+                "date_harvested": r.date_harvested.isoformat() if r.date_harvested else None,
+                "due_date": r.due_date.isoformat() if r.due_date else None,
+                "updated_at": r.updated_at.isoformat() if r.updated_at else None,
+                "farmer_uuid": r.farmer.uuid if r.farmer else None,
+                "farmer_name": r.farmer.full_name if r.farmer else None,
+                "barangay_id": r.barangay_id,
+                "municipality_id": r.municipality_id,
+                "user_id": r.user_id,
+                "date_dried": r.date_dried.isoformat() if r.date_dried else None
+            } for r in unsynced_records if r.batch_name
         ]}
 
-        sync_resp = session_requests.post(SYNC_ENDPOINT, json=payload)
+        if payload["records"]:
+            sync_resp = session_requests.post(SYNC_ENDPOINT, json=payload)
 
-        if sync_resp.status_code == 200:
-            for r in unsynced_records:
-                r.synced = True
-            db.session.commit()
-            flash(f"Successfully synced {len(unsynced_records)} records.", "success")
-        else:
-            flash(f"Sync failed: {sync_resp.text}", "danger")
-            return redirect(url_for("views.home"))
+            if sync_resp.status_code == 200:
+                for r in unsynced_records:
+                    r.synced = True
+                    r.synced_at = datetime.utcnow()
+                db.session.commit()
+                flash(f"Successfully synced {len(unsynced_records)} records.", "success")
+            else:
+                flash(f"Sync failed: {sync_resp.text}", "danger")
+                return redirect(url_for("views.home"))
 
-    # Fetch new data
+    # Step 3: Fetch Remote Records (Farmer UUID from current user)
+    farmer = Farmer.query.filter_by(username=current_user.username).first()
+    if not farmer:
+        flash("Local farmer account not found. Cannot fetch remote records.", "danger")
+        return redirect(url_for("views.home"))
+
+    FETCH_ENDPOINT = f"{REMOTE_URL}/api/fetch?farmer_uuid={farmer.uuid}"
     fetch_resp = session_requests.get(FETCH_ENDPOINT)
 
     if fetch_resp.status_code == 200:
         new_data = fetch_resp.json()
         for record in new_data:
             existing_record = DryingRecord.query.filter_by(uuid=record['uuid']).first()
+
+            date_planted = datetime.strptime(record['date_planted'], '%Y-%m-%d').date() if record.get('date_planted') else None
+            date_harvested = datetime.strptime(record['date_harvested'], '%Y-%m-%d').date() if record.get('date_harvested') else None
+            due_date = datetime.strptime(record['due_date'], '%Y-%m-%d').date() if record.get('due_date') else None
+            date_dried = datetime.strptime(record['date_dried'], '%Y-%m-%d').date() if record.get('date_dried') else None
+
             if existing_record:
-                # Convert date strings to date objects
-                date_planted_str = record.get('date_planted')
-                date_harvested_str = record.get('date_harvested')
-                due_date_str = record.get('due_date')
-
-                try:
-                    existing_record.initial_weight = record['initial_weight']
-                    existing_record.temperature = record['temperature']
-                    existing_record.humidity = record['humidity']
-                    existing_record.sensor_value = record['sensor_value']
-                    existing_record.initial_moisture = record['initial_moisture']
-                    existing_record.final_moisture = record['final_moisture']
-                    existing_record.drying_time = record['drying_time']
-                    existing_record.final_weight = record['final_weight']
-                    existing_record.date_planted = datetime.strptime(date_planted_str, '%Y-%m-%d').date() if date_planted_str else None
-                    existing_record.date_harvested = datetime.strptime(date_harvested_str, '%Y-%m-%d').date() if date_harvested_str else None
-                    existing_record.due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date() if due_date_str else None
-                except ValueError as e:
-                    print(f"Date conversion error: {e}")
-                    # You might want to skip this record or set a default date
+                existing_record.initial_weight = record['initial_weight']
+                existing_record.temperature = record['temperature']
+                existing_record.humidity = record['humidity']
+                existing_record.sensor_value = record['sensor_value']
+                existing_record.initial_moisture = record['initial_moisture']
+                existing_record.final_moisture = record['final_moisture']
+                existing_record.drying_time = record['drying_time']
+                existing_record.final_weight = record['final_weight']
+                existing_record.date_planted = date_planted
+                existing_record.date_harvested = date_harvested
+                existing_record.due_date = due_date
+                existing_record.date_dried = date_dried
+                existing_record.synced = True
+                existing_record.synced_at = datetime.utcnow()
             else:
-                # Convert date strings to date objects
-                date_planted_str = record.get('date_planted')
-                date_harvested_str = record.get('date_harvested')
-                due_date_str = record.get('due_date')
+                farmer_local = Farmer.query.filter_by(uuid=record.get('farmer_uuid')).first()
+                if not farmer_local:
+                    print(f"⚠️ Skipping record {record['uuid']}: farmer_uuid not found locally")
+                    continue
 
-                try:
-                    date_planted = datetime.strptime(date_planted_str, '%Y-%m-%d').date() if date_planted_str else None
-                    date_harvested = datetime.strptime(date_harvested_str, '%Y-%m-%d').date() if date_harvested_str else None
-                    due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date() if due_date_str else None
-                except ValueError as e:
-                    print(f"Date conversion error: {e}")
-                    # You might want to skip this record or set a default date
-
-                # Create a new DryingRecord
                 new_record = DryingRecord(
                     uuid=record['uuid'],
+                    batch_name=record.get('batch_name'),
                     initial_weight=record['initial_weight'],
                     temperature=record['temperature'],
                     humidity=record['humidity'],
@@ -304,9 +336,17 @@ def sync_to_remote():
                     date_planted=date_planted,
                     date_harvested=date_harvested,
                     due_date=due_date,
-                    farmer_id=current_user.id
+                    date_dried=date_dried,
+                    synced=True,
+                    synced_at=datetime.utcnow(),
+                    user_id=record.get('user_id'),
+                    farmer_id=farmer_local.id,
+                    barangay_id=record.get('barangay_id'),
+                    municipality_id=record.get('municipality_id'),
+                    farmer_name=record.get('farmer_name')
                 )
                 db.session.add(new_record)
+
         db.session.commit()
         flash("Data fetched and merged successfully!", "success")
     else:

@@ -20,11 +20,13 @@ def create_app():
     # register blueprints
     from .views import views
     from .auth import auth
+    from .api import api
     app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(auth, url_prefix='/')
+    app.register_blueprint(api, url_prefix='/api')
 
     #import models
-    from .models import Farmer, DryingRecord, Municipality, Barangay
+    from .models import Farmer, DryingRecord, Municipality, Barangay, User
     create_database(app)
 
     # set up Flask-Login
