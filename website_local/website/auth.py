@@ -6,6 +6,9 @@ from .api import authenticate_user, fetch_farmer_data, fetch_user_data, fetch_ba
 from .models import Farmer, Barangay, Municipality, User
 import requests
 auth = Blueprint('auth', __name__)
+from flask import session
+
+
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
@@ -13,14 +16,16 @@ def login():
         username_or_email = request.form.get('username')
         password = request.form.get('password')
 
-        # try to authenticate as a local farmer
+        # Try to authenticate as a local farmer
         farmer = Farmer.query.filter_by(username=username_or_email).first()
         if farmer and check_password_hash(farmer.password, password):
+            session.permanent = True
+            session['password'] = password  # ✅ Store password for syncing
             login_user(farmer, remember=True)
             flash('Logged in successfully!', category='success')
             return redirect(url_for('views.home'))
 
-        # try remote authentication
+        # Try remote authentication
         REMOTE_URL = "https://paddy-rice-tracker.onrender.com"
         LOGIN_ENDPOINT = f"{REMOTE_URL}/login"
 
@@ -32,11 +37,13 @@ def login():
             )
 
             if login_resp.status_code == 200:
+                session.permanent = True
                 session['password'] = password
+                print("Password stored in session:", session.get('password'))
 
                 from .api import fetch_user_data, fetch_farmer_data, fetch_barangay_data, fetch_municipality_data
 
-                all_users = fetch_user_data()  
+                all_users = fetch_user_data()
                 if all_users:
                     for u in all_users:
                         existing_user = User.query.filter_by(email=u['email']).first()
@@ -50,8 +57,8 @@ def login():
                                 barangay_id=u['barangay_id'],
                                 municipality_id=u['municipality_id']
                             ))
-                barangays = fetch_barangay_data()
 
+                barangays = fetch_barangay_data()
                 if barangays:
                     for b in barangays:
                         existing = Barangay.query.filter_by(id=b['id']).first()
@@ -64,6 +71,7 @@ def login():
                                 name=b['name'],
                                 municipality_id=b['municipality_id']
                             ))
+
                 municipalities = fetch_municipality_data()
                 if municipalities:
                     for m in municipalities:
@@ -93,7 +101,7 @@ def login():
 
                 farmer = Farmer.query.filter_by(username=username_or_email).first()
                 if farmer:
-                    login_user(farmer)
+                    login_user(farmer, remember=True)
                     flash("Logged in successfully!", "success")
                     return redirect(url_for("views.home"))
                 else:
@@ -103,6 +111,7 @@ def login():
             flash("No internet connection. Please try again later.", "error")
 
     return render_template("login.html", user=current_user)
+
 
 
 

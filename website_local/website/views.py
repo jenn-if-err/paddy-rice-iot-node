@@ -315,7 +315,7 @@ def sync_to_remote():
             else:
                 farmer_local = Farmer.query.filter_by(uuid=record.get('farmer_uuid')).first()
                 if not farmer_local:
-                    print(f"⚠️ Skipping record {record['uuid']}: farmer_uuid not found locally")
+                    print(f"Skipping record {record['uuid']}: farmer_uuid not found locally")
                     continue
 
                 new_record = DryingRecord(

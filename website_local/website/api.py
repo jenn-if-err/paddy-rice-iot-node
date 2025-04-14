@@ -10,7 +10,8 @@ def authenticate_user(username, password):
     LOGIN_ENDPOINT = f"{REMOTE_URL}/login"
     response = requests.post(LOGIN_ENDPOINT, data={"username": username, "password": password})
     if response.status_code == 200:
-        session['token'] = response.json().get('token')  
+        session.permanent = True
+        session['token'] = response.json().get('token')
         return True
     return False
 
@@ -26,31 +27,31 @@ def fetch_user_data():
     USER_ENDPOINT = f"{REMOTE_URL}/api/users"
     response = requests.get(USER_ENDPOINT)
 
-    print("🧪 USER_ENDPOINT status:", response.status_code)
-    print("🧪 USER_ENDPOINT response text:", response.text)
+    print("USER_ENDPOINT status:", response.status_code)
+    print("USER_ENDPOINT response text:", response.text)
 
     if response.status_code == 200:
         try:
             return response.json()  
         except Exception as e:
-            print("❌ JSON decode error:", e)
+            print("JSON decode error:", e)
             return []
     else:
-        print("❌ Failed to fetch users:", response.status_code)
+        print("Failed to fetch users:", response.status_code)
         return []
 
 def fetch_barangay_data():
     BARANGAY_ENDPOINT = f"{REMOTE_URL}/api/barangays"
     response = requests.get(BARANGAY_ENDPOINT)
 
-    print("🧪 BARANGAY_ENDPOINT status:", response.status_code)
-    print("🧪 BARANGAY_ENDPOINT response text:", response.text)
+    print("BARANGAY_ENDPOINT status:", response.status_code)
+    print("BARANGAY_ENDPOINT response text:", response.text)
 
     if response.status_code == 200:
         try:
             return response.json() 
         except Exception as e:
-            print("❌ JSON decode error:", e)
+            print("JSON decode error:", e)
             return []
     else:
         print("Failed to fetch barangays:", response.status_code)
