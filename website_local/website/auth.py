@@ -13,14 +13,14 @@ def login():
         username_or_email = request.form.get('username')
         password = request.form.get('password')
 
-        # Try to authenticate as a local farmer
+        # try to authenticate as a local farmer
         farmer = Farmer.query.filter_by(username=username_or_email).first()
         if farmer and check_password_hash(farmer.password, password):
             login_user(farmer, remember=True)
             flash('Logged in successfully!', category='success')
             return redirect(url_for('views.home'))
 
-        # Try remote authentication
+        # try remote authentication
         REMOTE_URL = "https://paddy-rice-tracker.onrender.com"
         LOGIN_ENDPOINT = f"{REMOTE_URL}/login"
 
@@ -34,9 +34,6 @@ def login():
             if login_resp.status_code == 200:
                 session['password'] = password
 
-                # -------------------------------
-                # ✅ Fetch & store all USERS
-                # -------------------------------
                 from .api import fetch_user_data, fetch_farmer_data, fetch_barangay_data, fetch_municipality_data
 
                 all_users = fetch_user_data()  
@@ -78,9 +75,7 @@ def login():
                                 id=m['id'],
                                 name=m['name']
                             ))
-                # -------------------------------
-                # ✅ Fetch & store Farmer
-                # -------------------------------
+
                 farmer_data = fetch_farmer_data(username_or_email)
                 if farmer_data:
                     existing_farmer = Farmer.query.filter_by(username=farmer_data['username']).first()
@@ -94,10 +89,8 @@ def login():
                             last_name=farmer_data['last_name'],
                             barangay_id=farmer_data['barangay_id']
                         ))
-                # ✅ Commit everything ONCE
                 db.session.commit()
 
-                # ✅ Log in the farmer
                 farmer = Farmer.query.filter_by(username=username_or_email).first()
                 if farmer:
                     login_user(farmer)
@@ -123,21 +116,21 @@ def logout():
 @login_required
 def sync():
     try:
-        # Authenticate and fetch data
+        # authenticate and fetch data
         if authenticate_user(current_user.username, session.get('password')):
             farmer_data = fetch_farmer_data(current_user.username)
 
-            # Store farmer data
+            # store farmer data
             if farmer_data:
                 farmer = Farmer.query.filter_by(username=farmer_data['username']).first()
                 if farmer:
-                    # Update existing farmer
+                    # update existing farmer
                     farmer.first_name = farmer_data['first_name']
                     farmer.middle_name = farmer_data.get('middle_name')
                     farmer.last_name = farmer_data['last_name']
                     farmer.barangay_id = farmer_data['barangay_id']
                 else:
-                    # Create new farmer
+                    # create new farmer
                     new_farmer = Farmer(
                         username=farmer_data['username'],
                         password=generate_password_hash(session.get('password'), method='pbkdf2:sha256'),
@@ -147,9 +140,9 @@ def sync():
                         barangay_id=farmer_data['barangay_id']
                     )
                     db.session.add(new_farmer)
-                    db.session.commit()  # ✅ ADD THIS HERE
+                    db.session.commit()  
 
-            # Store barangay and municipality data
+            # store barangay and municipality data
             if barangays:
                 for barangay_data in barangays:
                     barangay = Barangay.query.filter_by(id=barangay_data['id']).first()
@@ -163,7 +156,7 @@ def sync():
                             municipality_id=barangay_data['municipality_id']
                         )
                         db.session.add(new_barangay)
-                        db.session.commit()  # ✅ ADD THIS HERE
+                        db.session.commit()  
 
             if municipalities:
                 for municipality_data in municipalities:
@@ -176,7 +169,7 @@ def sync():
                             name=municipality_data['name']
                         )
                         db.session.add(new_municipality)
-                        db.session.commit()  # ✅ ADD THIS HERE
+                        db.session.commit()  
 
             db.session.commit()
             flash('Data synced successfully!', category='success')

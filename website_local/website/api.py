@@ -10,7 +10,7 @@ def authenticate_user(username, password):
     LOGIN_ENDPOINT = f"{REMOTE_URL}/login"
     response = requests.post(LOGIN_ENDPOINT, data={"username": username, "password": password})
     if response.status_code == 200:
-        session['token'] = response.json().get('token')  # Store token for future requests
+        session['token'] = response.json().get('token')  
         return True
     return False
 
@@ -31,7 +31,7 @@ def fetch_user_data():
 
     if response.status_code == 200:
         try:
-            return response.json()  # this is now a list
+            return response.json()  
         except Exception as e:
             print("❌ JSON decode error:", e)
             return []
@@ -48,27 +48,27 @@ def fetch_barangay_data():
 
     if response.status_code == 200:
         try:
-            return response.json()  # list of barangays
+            return response.json() 
         except Exception as e:
             print("❌ JSON decode error:", e)
             return []
     else:
-        print("❌ Failed to fetch barangays:", response.status_code)
+        print("Failed to fetch barangays:", response.status_code)
         return []
 
 def fetch_municipality_data():
     MUNICIPALITY_ENDPOINT = f"{REMOTE_URL}/api/municipalities"
     response = requests.get(MUNICIPALITY_ENDPOINT)
 
-    print("🧪 MUNICIPALITY_ENDPOINT status:", response.status_code)
-    print("🧪 MUNICIPALITY_ENDPOINT response text:", response.text)
+    print("MUNICIPALITY_ENDPOINT status:", response.status_code)
+    print("MUNICIPALITY_ENDPOINT response text:", response.text)
 
     if response.status_code == 200:
         try:
-            return response.json()  # list of municipalities
+            return response.json()  
         except Exception as e:
-            print("❌ JSON decode error:", e)
+            print("JSON decode error:", e)
             return []
     else:
-        print("❌ Failed to fetch municipalities:", response.status_code)
+        print("Failed to fetch municipalities:", response.status_code)
         return []

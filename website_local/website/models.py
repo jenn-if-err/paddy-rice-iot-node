@@ -10,7 +10,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(150), unique=True, nullable=False)
     full_name = db.Column(db.String(150), nullable=False)
-    role = db.Column(db.String(50), nullable=False)  # 'barangay' or 'municipal'
+    role = db.Column(db.String(50), nullable=False)  # barangay/municipal
     password = db.Column(db.String(200), nullable=False)
 
     municipality_id = db.Column(db.Integer, db.ForeignKey('municipalities.id'), nullable=True)
@@ -23,9 +23,6 @@ class User(db.Model, UserMixin):
 
     def get_id(self):
         return f"user-{self.id}"
-# ========================
-# Farmer Model
-# ========================
 class Farmer(db.Model, UserMixin):
     __tablename__ = 'farmers'
 
@@ -53,9 +50,7 @@ class Farmer(db.Model, UserMixin):
     def full_name(self):
         return f"{self.first_name} {self.middle_name + ' ' if self.middle_name else ''}{self.last_name}"
 
-# ==========================
-# Drying Records Table
-# ==========================
+
 class DryingRecord(db.Model):
     __tablename__ = 'drying_records'
 
@@ -93,18 +88,13 @@ class DryingRecord(db.Model):
     barangay = db.relationship('Barangay', backref=db.backref('drying_records', lazy=True))
     municipality = db.relationship('Municipality', backref=db.backref('drying_records', lazy=True))
 
-# =====================
-# Municipality Model
-# =====================
+
 class Municipality(db.Model):
     __tablename__ = 'municipalities'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, nullable=False, unique=True)
     barangays = db.relationship('Barangay', backref='municipality', lazy=True)
 
-# =================
-# Barangay Model
-# =================
 class Barangay(db.Model):
     __tablename__ = 'barangays'
     id = db.Column(db.Integer, primary_key=True)

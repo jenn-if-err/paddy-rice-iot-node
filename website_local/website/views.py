@@ -23,10 +23,10 @@ def read_arduino_serial():
         else:
             port = '/dev/ttyUSB0'  # or '/dev/ttyACM0' 
 
-        # Check if the port is available
+        # check if the port is available
         if not os.path.exists(port):
             print("Arduino not found. Using default values.")
-            return 20.0, 31.0, 60.0  # Default sensor_value, temperature, humidity
+            return 20.0, 32.0, 60.0  # Default sensor_value, temperature, humidity
 
         with serial.Serial(port, 115200, timeout=2) as ser:
             time.sleep(2)
@@ -44,7 +44,7 @@ def read_arduino_serial():
     except Exception as e:
         print("Error reading from Arduino:", e)
         print("Using default values.")
-        return 20.0, 25.0, 60.0  # Default sensor_value, temperature, humidity
+        return 20.0, 32.0, 60.0  # Default sensor_value, temperature, humidity
 
     return None, None, None
 
@@ -157,7 +157,6 @@ def save_prediction():
     try:
         data = request.form
 
-        # ✅ Manually fetch the staff user from the same barangay
         staff_user = User.query.filter_by(barangay_id=current_user.barangay_id).first()
 
         new_record = DryingRecord(
@@ -222,7 +221,6 @@ def sync_to_remote():
 
     session_requests = requests.Session()
 
-    # Step 1: Login to remote
     login_resp = session_requests.post(
         LOGIN_ENDPOINT,
         data={"email": USERNAME, "password": PASSWORD},
@@ -240,7 +238,6 @@ def sync_to_remote():
         flash("Remote login failed. Unexpected response.", "danger")
         return redirect(url_for("views.home"))
 
-    # Step 2: Sync Local Records to Remote
     unsynced_records = DryingRecord.query.filter_by(farmer_id=current_user.id, synced=False).all()
 
     if unsynced_records:
@@ -282,7 +279,6 @@ def sync_to_remote():
                 flash(f"Sync failed: {sync_resp.text}", "danger")
                 return redirect(url_for("views.home"))
 
-    # Step 3: Fetch Remote Records (Farmer UUID from current user)
     farmer = Farmer.query.filter_by(username=current_user.username).first()
     if not farmer:
         flash("Local farmer account not found. Cannot fetch remote records.", "danger")
