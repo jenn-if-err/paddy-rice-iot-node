@@ -20,7 +20,7 @@ def login():
         farmer = Farmer.query.filter_by(username=username_or_email).first()
         if farmer and check_password_hash(farmer.password, password):
             session.permanent = True
-            session['password'] = password  # ✅ Store password for syncing
+            session['password'] = password  # 
             login_user(farmer, remember=True)
             flash('Logged in successfully!', category='success')
             return redirect(url_for('views.home'))
