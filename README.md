@@ -7,6 +7,16 @@ A machine learning and IoT-based paddy rice post-drying monitoring system that i
 
 ---
 
+## The Team
+
+* **Jennifer Tongco** – Team Leader, Lead Full-Stack Developer & System Architect
+* **Claire Justin Pugio** – UI/UX Designer 
+* **John Jabez Visarra** – Hardware Engineer & Frontend Support
+* **John Kylo Cubelo** – Hardware Engineer
+* **Engr. Jeralyn Alagon** – Thesis Adviser
+
+---
+
 ## Overview
 
 **Paddy Rice Tracker** is an innovative **edge computing IoT system** designed to revolutionize post-harvest paddy rice management. Built for **Raspberry Pi 4**, this system combines embedded hardware sensors, local machine learning inference, and cloud synchronization to provide real-time monitoring and predictive analytics for rice quality control.
