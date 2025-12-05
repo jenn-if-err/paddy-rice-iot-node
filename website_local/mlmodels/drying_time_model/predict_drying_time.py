@@ -2,11 +2,8 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
-
-# Automatically find the base directory of the script
 BASE_DIR = Path(__file__).resolve().parent
 
-# Model paths relative to this script's location
 MODEL_PATH = BASE_DIR / "drying_time_model.joblib"
 SCALER_PATH = BASE_DIR / "drying_time_scaler.joblib"
 
@@ -25,7 +22,7 @@ def predict_drying_time(initial_moisture, temperature, humidity, final_moisture)
         float(final_moisture)
     ]).reshape(1, -1)
     
-    # Scale the features
+    # scale the features
     combined_features_scaled = scaler.transform(combined_features)
     
     # Predict
