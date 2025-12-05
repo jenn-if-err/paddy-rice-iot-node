@@ -34,7 +34,7 @@ def fetch_user_data():
         try:
             return response.json()  
         except Exception as e:
-            print("JSON decode error:", e)
+            print(" JSON decode error:", e)
             return []
     else:
         print("Failed to fetch users:", response.status_code)
