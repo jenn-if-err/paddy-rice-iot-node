@@ -8,7 +8,6 @@
 
 DHT dht(DHTPIN, DHTTYPE);
 
-// Calibration
 const int sen_max = 570;
 const int sen_min = 246;
 
@@ -20,7 +19,7 @@ void setup() {
 void loop() {
   if (Serial.available() > 0) {
     String command = Serial.readStringUntil('\n');
-    command.trim();  // Remove trailing newline
+    command.trim();  
 
     if (command == "read") {
       int soilMoistureValue = analogRead(SOIL_PIN);
@@ -33,14 +32,14 @@ void loop() {
       if (isnan(humidity)) humidity = 0.0;
       if (isnan(temperature)) temperature = 0.0;
 
-      // Output data in one line: moisture,temperature,humidity
+      
       Serial.print(soilMoisturePercent, 1);
       Serial.print(",");
       Serial.print(temperature, 1);
       Serial.print(",");
       Serial.println(humidity, 1);
 
-      Serial.flush();  // Ensure data is sent
+      Serial.flush();  
     }
   }
 }
