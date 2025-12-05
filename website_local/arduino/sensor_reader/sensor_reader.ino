@@ -20,7 +20,7 @@ void setup() {
 void loop() {
   if (Serial.available() > 0) {
     String command = Serial.readStringUntil('\n');
-    command.trim();  // Remove trailing newline
+    command.trim();  
 
     if (command == "read") {
       int soilMoistureValue = analogRead(SOIL_PIN);
@@ -40,7 +40,7 @@ void loop() {
       Serial.print(",");
       Serial.println(humidity, 1);
 
-      Serial.flush();  // Ensure data is sent
+      Serial.flush();  
     }
   }
 }

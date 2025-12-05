@@ -1,16 +1,16 @@
 /* Navbar background color */
 .bg-green {
-    background-color: #355B25; /* Same green as your login button */
+    background-color: #355B25; 
   }
   
-  /* Brand logo (circle image placeholder) */
+
   .brand-logo {
     width: 40px;
     height: 40px;
     object-fit: cover;
   }
   
-  /* Main container fixed at 1024×600 */
+
   .main-container {
     width: 1024px;
     height: 600px;

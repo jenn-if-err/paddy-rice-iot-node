@@ -1,9 +1,9 @@
 /* Navbar background color */
 .bg-green {
-    background-color: #355B25; /* Same green as your login button */
+    background-color: #355B25;
   }
   
-  /* Brand logo (circle image placeholder) */
+
   .brand-logo {
     width: 40px;
     height: 40px;
@@ -13,7 +13,6 @@
 
 
 
-/* Fix the overall layout to 1024x600 and center content */
 .outer-container {
   width: 1024px;
   height: 600px;
@@ -22,7 +21,7 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  border: 1px solid #ccc; /* Optional: visualize the container */
+  border: 1px solid #ccc; 
 }
 
 /* Content wrapper splits into two columns */
@@ -58,7 +57,7 @@
   background-color: #f3f3f3;
   border: none;
   border-radius: 4px;
-  padding-right: 2.5rem; /* Space for the eye icon */
+  padding-right: 2.5rem; 
 }
 
 /* Toggle password icon styling */

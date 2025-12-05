@@ -14,8 +14,6 @@ class User(db.Model, UserMixin):
 class DryingRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime(timezone=True), default=func.now())
-
-    # New field
     batch_name = db.Column(db.String(150), nullable=False)
 
     # Sensor and drying input values
@@ -30,7 +28,6 @@ class DryingRecord(db.Model):
     drying_time = db.Column(db.String(10), nullable=False)
     final_weight = db.Column(db.Float, nullable=False)
 
-    # New field: Shelf life derived from final_moisture
     due_date = db.Column(db.String(50), nullable=False)
 
     # Relationship
