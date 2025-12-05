@@ -36,6 +36,15 @@ This edge node is designed to operate in tandem with the **Paddy Rice Tracker** 
 
 ---
 
+## The Team
+
+* **Jennifer Tongco** – Team Leader, Lead Full-Stack Developer & System Architect
+* **Claire Justin Pugio** – UI/UX Designer 
+* **John Jabez Visarra** – Hardware Engineer & Frontend Support
+* **John Kylo Cubelo** – Hardware Engineer
+* **Engr. Jeralyn Alagon** – Thesis Adviser
+
+---
 ## Key Features
 
 ### Machine Learning & Predictive Analytics
